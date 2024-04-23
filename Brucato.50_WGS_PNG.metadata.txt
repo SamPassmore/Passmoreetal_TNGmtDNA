@@ -1,0 +1,50 @@
+B00IEV8	M	Motuna	Bougainville	6.747	155.685	B4a1a1a1c	O1a1a1a
+B00IEV9	F	Telei	Bougainville	6.747	155.685	B4a1a1a	-
+B00IEVA	F	Motuna	Bougainville	6.747	155.685	M27c	-
+B00IEVB	M	Bannoni	Bougainville	6.302	155.098	B4a1a1a	M1b1
+B00IEVD	F	Halia-Haku	Bougainville	5.442	154.829	Q2a	-
+B00IEVE	M	Magi	Central	10.387	149.356	Q2a4	O2a2b2a2
+B00IEVF	F	Motu	Central	10.141	148.013	B4a1a1a	-
+B00IEVG	M	Motu	Central	10.141	148.013	B4a1a1	O2a2b2a2
+B00IEVH	F	Hula	Central	10.095	147.728	B4a1a1	-
+B00IEVI	F	Kwoma	East-Sepik	4.154	142.729	Q1a1	-
+B00IEVJ	M	Nagum Boiken	East-Sepik	3.580	143.658	Q1a	C1b2a1
+B00IEVK	F	Hawain	East-Sepik	3.614	143.377	Q1	-
+B00IEVL	M	Nagam-Boikin-Kakra	East-Sepik	3.812	143.865	Q1a1	C1b2a1b
+B00IEVM	F	Kafe	Eastern-Highlands	6.290	145.859	R14	-
+B00IEVN	F	East highlander	Eastern-Highlands	6.290	145.859	B4a1a1a	-
+B00IEVO	M	Enga	Enga	5.464	143.742	Q1	K2b
+B00IEVQ	M	Enga 	Enga	6.127	143.420	P3b	M1
+B00IEVR	M	Orokolo	Gulf	7.858	145.332	Q1a1a	O1b1a1a1a1a1a
+B00IEVW	M	Melpa	Jiwaka	5.845	144.575	Q1a1	M1b1
+B00IEW0	F	Amele	Madang	5.290	145.739	P1d1	-
+B00IEW1	F	Misima-Suau	Milne-Bay	10.081	151.094	E1a1b4	-
+B00IEW3	F	Eyagu	Milne-Bay	10.081	151.094	B4a1a1	-
+B00IEW5	M	Wedau	Milne-Bay	10.081	151.094	B4a1a1	O1a2a
+B00IEW8	M	Maisin	Oro	8.761	148.238	Q3	S
+B00IEW9	F	Simbu	Simbu	6.217	144.750	P2	-
+B00IEWA	F	Kora	Simbu	6.095	145.022	Q1	-
+B00IEWD	F	Kewabi	Southern-Highlands	6.492	143.971	Q1	-
+B00IEWG	M	Melpa	Western-Highlands	5.858	144.243	Q1	M1
+B00IEWH	F	West highlander	Western-Highlands	5.833	145.833	Q1a	-
+B00IEWJ	M	Melpa	Western-Highlands	5.858	144.243	Q1	M1
+B00IEWM	M	Telei	Bougainville	6.747	155.685	B4a1a1	M1b1
+B00IEWP	F	Abadi	Central	9.183	146.940	E1a2+(16261)	-
+B00IEWR	M	Maipi	Enga	5.463	143.145	M28a+204	K2b
+B00IEWV	F	Melpa	Western-Highlands	5.858	144.243	P1d	-
+B00IWTM	M	Era	Simbu	6.191	144.912	P4a1	M1
+B00IWTN	M	Melpa	Western-Highlands	5.858	144.243	P4a1	M1
+B00IWTQ	M	Wiru	Southern-Highlands	6.262	143.981	P3b	M1a2
+B00IWTR	M	Kamea	Gulf	8.106	146.149	Q1	S
+B00IWTT	M	Gapapainwa	Milne-Bay	9.969	149.834	B4a1a1+16126	M1
+B00IWTU	M	Kewabi-Poroma	Southern-Highlands	6.127	143.420	Q1	S
+B00IWTW	M	Milne Bay	Milne-Bay	8.545	151.064	P2	O1a1a1a
+B00IWTX	M	Karkar	Madang	4.546	145.997	B4a1a1a	K2b
+B00IWU1	M	Enga	Enga	5.532	143.782	P2	M1
+B00IWU2	F	Angal	Hela	6.014	143.376	Q3a1	-
+B00IWU3	M	Oksap Meng	Western	5.226	142.229	P1d	S
+B00IWU5	F	Melpa	Western-Highlands	5.858	144.243	P	-
+B00IWU7	F	Ambunti	Morobe	7.111	145.994	E1a2a1	-
+B00IWU8	F	Bell	Jiwaka	5.845	144.575	P3b	-
+B00IWU9	F	Korafe	Oro	9.080	149.317	P2	-
+B00IWUA	F	Melpa	Western-Highlands	6.053	144.104	Q3a1	-
