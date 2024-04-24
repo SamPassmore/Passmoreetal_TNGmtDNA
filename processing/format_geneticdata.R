@@ -154,8 +154,7 @@ genetic_sheet3$interview_language[genetic_sheet3$interview_language == "Kuman to
 genetic_sheet3$interview_language[genetic_sheet3$interview_language == "Kuman/Pidgin/English"] = "Kuman [kue]"
 
 ### Format Sheet 4 ####
-## The fourth sheet we received from Francois is a repeat of the Daru data I received from Nick Evans,
-## but without information on grandparents. I rely on the data from Nick for Daru Samples
+## The fourth sheet we received from Francois is the Daru data. We are pasring that out for now. 
 
 #### Testing data assumptions ####
 ## For each sheet ensure there are unique ids
@@ -165,79 +164,8 @@ n_distinct(genetic_sheet3$ID) == nrow(genetic_sheet3)
 
 #### Bind rows ####
 genetic_data = bind_rows(genetic_sheet1, genetic_sheet2, genetic_sheet3)
-genetic_data$daru = "Not Daru"
 
-#### Add Daru Data ####
-dmd = read.csv("processed_data/daru_metadata.csv")
-dmd$ID = str_extract(dmd$sampling_id, "[^_]+")
-
-#### Manual Fixes ####
-## add iso codes to assigned language
-dmd$interview_language = dmd$language_for_genetic_analysis
-
-dmd$interview_language[dmd$interview_language == "Anta"] = "Anta [tci]"
-dmd$interview_language[dmd$interview_language == "Arammba"] = "Arammba [stk]"
-dmd$interview_language[dmd$interview_language == "Bine"] = "Bine [bon]"
-dmd$interview_language[dmd$interview_language == "Bine Mene (Mene = 'language', so identical to what appears elsewhere as Bine)"] = "Bine [bon]"
-dmd$interview_language[dmd$interview_language == "Bitur"] = "Bitur [mcc]"
-dmd$interview_language[dmd$interview_language == "Ekong (variety of Ende)"] = "Ekong [kit]"
-dmd$interview_language[dmd$interview_language == "Emde, Idi"] = "Ende [kit]"
-dmd$interview_language[dmd$interview_language == "Ende"] = "Ende [kit]"
-dmd$interview_language[dmd$interview_language == "English"] = "English [eng]"
-dmd$interview_language[dmd$interview_language == "English, Kiwai"] = "Kiwaian [kjd]" ## using southern kiwaian
-dmd$interview_language[dmd$interview_language == "Gidra"] = "Wipi [gdr]"
-dmd$interview_language[dmd$interview_language == "Gizra"] = "Gizrra [tof]"
-dmd$interview_language[dmd$interview_language == "GIzra"] = "Gizrra [tof]"
-dmd$interview_language[dmd$interview_language == "Gogodala"] = "Gogodala [ggw]"
-dmd$interview_language[dmd$interview_language == "Gogodala, Agob"] = "Gogodala [ggw]"
-dmd$interview_language[dmd$interview_language == "Idi"] = "Idi [idi]"
-dmd$interview_language[dmd$interview_language == "Idi, Taeme"] = "Idi [idi]" # using the Idi-Taeme glottocode
-dmd$interview_language[dmd$interview_language == "Idi; Taeme"] = "Idi [idi]" 
-dmd$interview_language[dmd$interview_language == "Kancha"] = "Kánchá [pep]"
-dmd$interview_language[dmd$interview_language == "Kawam"] = "Kawam [kit]"
-dmd$interview_language[dmd$interview_language == "Kiunum"] = "Were [wei]"
-dmd$interview_language[dmd$interview_language == "KIwai"] = "Kiwaian [kjd]"
-dmd$interview_language[dmd$interview_language == "Kiwai"] = "Kiwaian [kjd]"
-dmd$interview_language[dmd$interview_language == "Komnzo"] = "Komnzo [tci]"
-# I had an email exchange with NE suggesting Magiam is an alternative pronounciation of Makayam. 
-dmd$interview_language[dmd$interview_language == "Magiam"] = "Makayam [aup]" 
-dmd$interview_language[dmd$interview_language == "Makayam"] = "Makayam [aup]"
-dmd$interview_language[dmd$interview_language == "Náma"] = "Nama [nmx]"
-dmd$interview_language[dmd$interview_language == "Nen"] = "Nen [nqn]"
-dmd$interview_language[dmd$interview_language == "Nen, Idi"] = "Nen [nqn]"
-dmd$interview_language[dmd$interview_language == "Nmbo"] = "Nambo [ncm]"
-dmd$interview_language[dmd$interview_language == "Smerki"] = "Smärky Kanum [kxq]"
-dmd$interview_language[dmd$interview_language == "Suki"] = "Suki [sui]"
-dmd$interview_language[dmd$interview_language == "Taeme"] = "Taeme [idi]"
-dmd$interview_language[dmd$interview_language == "Taeme, Ekang"] = "Taeme [idi]"
-dmd$interview_language[dmd$interview_language == "Wara"] = "Wára [tci]"
-dmd$interview_language[dmd$interview_language == "Wartha"] = "Warta Thuntai [gnt]"
-dmd$interview_language[dmd$interview_language == "Wipi"] = "Wipi [gdr]"
-
-dmd = dmd %>% 
-  rename(gender = "sex",
-         village = "place_of_birth",
-         interview_languagefamily = "language_family_for_genetic_analysis",
-         interview_languagefamily_branch = "language_family_.._branch_if_relevant._note_that_the_abbrev_tng_stands_for_.trans.new_guinea.",
-         father_village = "f_place_of_birth", 
-         father_language = "f_language",
-         father_languagefamily = "f_language_family_.._branch_if_relevant",
-         father_tribe = "f_tribe",
-         father_clan = "f_clan",
-         ff_languagefamily_branch = "ff_language_family_.._branch_if_relevant",
-         fm_languagefamily_branch = "fm_language_family_.._branch_if_relevant",
-         mother_village = "m_place_of_birth",
-         mother_language = "m_language",
-         mother_languagefamily = "m_language_family_.._branch_if_relevant",
-         mother_tribe = "m_tribe",
-         mother_clan = "m_clan",
-         mf_languagefamily_branch = "mf_language_family_.._branch_if_relevant",
-         mm_languagefamily_branch = "mm_language_family_.._branch_if_relevant")
-dmd$daru = "Daru"
-
-genetic_data = full_join(genetic_data, dmd)
-
-# Seperately I collected the GPS coordinates of all Villages listed in the dataset. I merge that data in here
+# Separately I collected the GPS coordinates of all Villages listed in the dataset. I merge that data in here
 village_coords = read.csv('data/metadata_villagedata.csv')
 village_coords = village_coords[,c("ID", "village", "LATITUDE", "LONGITUDE")]
 

@@ -128,6 +128,17 @@ levels(lf_tbl$`Language Family`)[levels(lf_tbl$`Language Family`)==""] = "Missin
 kable(lf_tbl, row.names = NA)
 ```
 
+Some decisions of note:
+
+-   Paiwaian is a language which has disputed membership to TNG, and could also be considered as part of the Tereban family [@pawley2017]. We include this language as its own TNG branch, given we have a large sample of speakers (n = 52).
+
+```         
+::: {.callout-note}
+We could consider Paiwaian as Tereban. SP needs to talk to NE about the strength of evidence for doing this. 
+```
+
+-   We have one speaker of Orokolo, an Eleman language that is sometimes categorised as a TNG language. @pawley2017 write there is no evidence for this link. We do not categorise this family as TNG, however, since there is only one individual it is an inconsequential decision for our analysis.
+
 ### Maps of Samples
 
 #### mtDNA
