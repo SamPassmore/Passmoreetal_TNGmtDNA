@@ -96,11 +96,10 @@ For samples taken in the 2019 field visit, we also asked these additional questi
 >
 > Which hand is your dominant hand? \* related to other research questions not discussed here
 
-From the questions on language, we also infer the language families that individuals, and relatives speak. Existing samples also contained information on the language which individuals speak. Since the braoder genetic sample was collected across a number of different studies, we make some decisions on language names, locations, and the comparability of questions across samples. See scripts `processing/add_daru.R` and `processing/format_geneticdata.R` for details on metadata cleaning and alignment.
+From the questions on language, we also infer the language families that individuals and relatives speak. Existing samples also contained information on the language which individuals speak. Since the broader genetic sample was collected across a number of different studies, we make some decisions on language names, locations, and the comparability of questions across samples. See script `processing/format_geneticdata.R` for details on metadata cleaning and alignment.
 
 ```{r echo=FALSE}
 if(!file.exists("processed_data/genetic_samples.csv")){
-  system("RScript processing/add_daru.R")
   system("RScript processing/format_geneticdata.R")
 }
 
@@ -122,7 +121,7 @@ kable(l_tbl1, row.names = NA)
 kable(l_tbl2, row.names = NA)
 
 # Language Family samples
-lf_tbl = as.data.frame(table(metadata$interview_languagefamily))
+lf_tbl = as.data.frame(table(metadata$Branch_Family))
 colnames(lf_tbl) = c("Language Family", "Samples")
 levels(lf_tbl$`Language Family`)[levels(lf_tbl$`Language Family`)==""] = "Missing"
 kable(lf_tbl, row.names = NA)
@@ -151,14 +150,20 @@ if(!file.exists("figures/base_map.Rdata")){
   load("figures/base_map.Rdata")  
 }
 
-base_map + 
-  geom_point(data = metadata, aes(x = longitude_hybrid, y = latitude_hybrid, col = daru),
-             pch = 4, alpha = 0.6, lwd = 10) + 
+p = base_map + 
+  geom_count(data = metadata, aes(x = round(longitude_hybrid, 0), 
+                                  y = round(latitude_hybrid, 0)),
+             fill = "#FF5732",
+             pch = 21, alpha = 0.5, lwd = 10) + 
   ylab("Latitude") + xlab("Longitude") + 
   guides(col=guide_legend(title=element_blank())) +
   scale_color_hue(labels = c("Not Daru" = "Existing", "Daru" = "New")) + 
-  theme(legend.position = "bottom")
-  
+  theme_void() +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+p
+
+ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 ```
 
@@ -252,21 +257,14 @@ The trait heritage functions have been collected into a package that can be foun
 ## Results
 
 ```{r eval = FALSE}
-if(!file.exists("processed_data/genetic_samples.csv")){
-  system("RScript processing/add_daru.R")
-  system("RScript processing/format_geneticdata.R")
-}
-
 # mtDNA N Haplotypes
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru.trees -v interview_languagefamily")
+system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru.trees -v Branch_Family")
 
 # mtDNA M Haplotypes
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees -v interview_languagefamily")
-
-""
+system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees -v Branch_Family")
 
 # Non-recombinant Y 
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/NRY_Silcocks -v interview_languagefamily")
+system("Rscript analysis/posterior_trait_heritage.R -t NCI/NRY_Silcocks -v Branch_Family")
 ```
 
 #### Average marriage distance

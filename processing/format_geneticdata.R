@@ -154,7 +154,7 @@ genetic_sheet3$interview_language[genetic_sheet3$interview_language == "Kuman to
 genetic_sheet3$interview_language[genetic_sheet3$interview_language == "Kuman/Pidgin/English"] = "Kuman [kue]"
 
 ### Format Sheet 4 ####
-## The fourth sheet we received from Francois is the Daru data. We are pasring that out for now. 
+## The fourth sheet we received from Francois is the Daru data. We are ignoring data from the Daru sampling.
 
 #### Testing data assumptions ####
 ## For each sheet ensure there are unique ids
@@ -236,8 +236,9 @@ genetic_data = relocate(genetic_data, "ID", 1)
 
 #### Manual Fixes ####
 ## Manual fixes to some linguistic data
-# For recoding purposes, it is easier to have missing data not be listed as NA
+# For recoding purposes, it is easier to have missing data listed descriptively
 genetic_data$interview_language[is.na(genetic_data$interview_language)] = "None given"
+genetic_data$interview_language[genetic_data$interview_language == ""] = "None given"
 # Interviewees gave their language as Angan, which is a language family. The closest Angan language to where the interviews
 # were conducted was Baruya. These individuals are assigned to Baruya
 genetic_data$interview_language[genetic_data$interview_language == "Angan"] = "Baruya [byr]"
@@ -252,22 +253,29 @@ genetic_data$interview_language[genetic_data$interview_language == "Kumai ?"] = 
 # We largely only have one language per person, and will make this a constraint of this analysis. We assign Wiru to this language. 
 genetic_data$interview_language[genetic_data$interview_language == "Melpa [med], Wiru [wiu]"] = "Wiru [wiu]"
 # Tokano [zuh], Dano [aso] are both given as interview languages. They are also listed as the paternal and maternal language respectively.
-# We largely only have one language per person, and will make this a constraint of this analysis. We assign Dano to these people. 
+# We can only have one language per person, and will make this a constraint of this analysis. We assign Dano to these people. 
 genetic_data$interview_language[genetic_data$interview_language == "Tokano [zuh], Dano [aso]"] = "Dano [aso]"
 # Tiang [tbj], Tigak [tgc] are both given as interview languages. They are also listed as the paternal and maternal language respectively.
-# We largely only have one language per person, and will make this a constraint of this analysis. We assign Tigak to these people. 
+# We can only have one language per person, and will make this a constraint of this analysis. We assign Tigak to these people. 
 genetic_data$interview_language[genetic_data$interview_language == "Tiang [tbj], Tigak [tgc]"] = "Tigak [tgc]"
 # Mutu [tuc], Mape [mlh] are both given as interview languages. They are also listed as the paternal and maternal languages.
-# We largely only have one language per person, and will make this a constraint of this analysis. We assign Mutu to these people. 
+# We can only have one language per person, and will make this a constraint of this analysis. We assign Mutu to these people. 
 genetic_data$interview_language[genetic_data$interview_language == "Mutu [tuc], Mape [mlh]"] = "Mutu [tuc]"
 # Misima-Paneati [mpx], Suau [swp] are both given as interview languages. They are also listed as the paternal and maternal language respectively.
-# We largely only have one language per person, and will make this a constraint of this analysis. We assign Suau to these people. 
+# We can only have one language per person, and will make this a constraint of this analysis. We assign Suau to these people. 
 genetic_data$interview_language[genetic_data$interview_language == "Misima-Paneati [mpx], Suau [swp]"] = "Suau [swp]"
 # Lele [lle], Tok Pisin are both listed as interview languages. Since Tok Pisin is a lingua franca, this response is listed as Lele
 genetic_data$interview_language[genetic_data$interview_language == "Lele [lle], Tok Pisin"] = "Lele [lle]"
 # Bola [bnp], Tok Pisin are both listed as interview languages. Since Tok Pisin is a lingua franca, this response is listed as Bola
 genetic_data$interview_language[genetic_data$interview_language == "Bola [bnp], Tok Pisin"] = "Bola [bnp]"
+# 3 individuals have their language recorded as "Gimi (Eastern Highlands) [gim]" and 8 as "Gimi [gim]".
+# These appear to be the same languages, so they are changed to be the same
+genetic_data$interview_language[genetic_data$interview_language == "Gimi (Eastern Highlands) [gim]"] = "Gimi [gim]"
 
+## Two langauges cannot be matched to a recorded language variety
+# Eyagu (1 person)
+# Imani (17 people)
+## Imani appears to be a valley / place where people have come from. It is unclear what language they speak. 
 
 ## One language is listed as TO EXCLUDE. We exclude it here
 genetic_data = genetic_data[!genetic_data$interview_language == "TO EXCLUDE",]
@@ -286,20 +294,11 @@ genetic_data$gender = ifelse(genetic_data$gender == "m", "M",
 # Is the number of unique IDs equal to the number of rows? (i.e. are there no duplicates)
 n_distinct(genetic_data$ID) == nrow(genetic_data)
 
-## Add Language family  ####
-## using ISO codes
-glottolog_languages = read.csv("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/languages.csv")
-genetic_data$ISO639P3code = str_extract(genetic_data$interview_language, "(?<=\\[).*(?=\\])")
+## Add TNG Language branches or langauge family  ####
+## I have created a manual pairing of languages to language families / branches. 
+tng = read.csv('data/language_families.csv')
 
-genset_wISO = left_join(genetic_data[,c("ID", "ISO639P3code")], glottolog_languages, by = "ISO639P3code")
-genset_wISO = left_join(genset_wISO, glottolog_languages[,c("ID", "Name")], by = c("Family_ID" = "ID"), 
-                        suffix = c("", ".family"))
-Language_family = genset_wISO %>% select(ID = ID.x, interview_languagefamily_glottolog = Name.family)
-
-genetic_data = left_join(genetic_data, Language_family, by = "ID")
-
-genetic_data$interview_languagefamily[is.na(genetic_data$interview_languagefamily)] = 
-  genetic_data$interview_languagefamily_glottolog[is.na(genetic_data$interview_languagefamily)] 
+genetic_data = left_join(genetic_data, tng, by = "interview_language")
 
 #### Hybrid variables ####
 ### These variables contain a mixutre of observed and inferred data. Details for their hybridisation are below
