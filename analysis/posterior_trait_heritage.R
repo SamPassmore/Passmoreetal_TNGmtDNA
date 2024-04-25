@@ -52,7 +52,6 @@ tree = ape::read.nexus(tree_file)
 tree = tree[(length(tree)-n_tree):length(tree)]
 
 ### Clean the tip labels to match IDs
-### Make 1unit = 1 year
 tree = lapply(tree, function(t) {
   cleaned_tips = gsub("_.*","", t$tip.label)
   t$tip.label = cleaned_tips
@@ -129,32 +128,32 @@ distance_heritage_50 = parallel::mclapply(tree_dist[1:n_tree], function(t)
   ), mc.preschedule = TRUE,
   mc.cores = n_cores)
 
-distance_heritage_100 = parallel::mclapply(tree_dist[1:n_tree], function(t)
+distance_heritage_35 = parallel::mclapply(tree_dist[1:n_tree], function(t)
   traitheritage::distance_trait_heritage(
     tree = t,
     generation_time = generation_time,
     distance_matrix = distance_matrix,
-    cut_off = 100
+    cut_off = 35
   ), mc.preschedule = TRUE,
   mc.cores = n_cores)
 
-distance_heritage_200 = parallel::mclapply(tree_dist[1:n_tree], function(t)
+distance_heritage_20 = parallel::mclapply(tree_dist[1:n_tree], function(t)
   traitheritage::distance_trait_heritage(
     tree = t,
     generation_time = generation_time,
     distance_matrix = distance_matrix,
-    cut_off = 200
+    cut_off = 20
   ), mc.preschedule = TRUE,
   mc.cores = n_cores)
 
 distance_heritage_50 = dplyr::bind_rows(distance_heritage_50, .id = "posterior")
-distance_heritage_100 = dplyr::bind_rows(distance_heritage_100, .id = "posterior")
-distance_heritage_200 = dplyr::bind_rows(distance_heritage_200, .id = "posterior")
+distance_heritage_35 = dplyr::bind_rows(distance_heritage_35, .id = "posterior")
+distance_heritage_20 = dplyr::bind_rows(distance_heritage_20, .id = "posterior")
 
 base_name = paste0("results/", trait_name, "_", tools::file_path_sans_ext(basename(tree_file)))
 
 write.csv(language_probability, paste0(base_name, "_languagefamily.csv"), row.names = FALSE)
 write.csv(permutation_probability, paste0(base_name, "_permuted_languagefamily.csv"), row.names = FALSE)
 write.csv(distance_heritage_50, paste0(base_name, "_distance50.csv"), row.names = FALSE)
-write.csv(distance_heritage_100, paste0(base_name, "_distance100.csv"), row.names = FALSE)
-write.csv(distance_heritage_200, paste0(base_name, "_distance200.csv"), row.names = FALSE)
+write.csv(distance_heritage_35, paste0(base_name, "_distance35.csv"), row.names = FALSE)
+write.csv(distance_heritage_20, paste0(base_name, "_distance20.csv"), row.names = FALSE)

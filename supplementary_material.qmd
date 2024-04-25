@@ -267,44 +267,16 @@ system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_M/mtDNA_M-papua
 system("Rscript analysis/posterior_trait_heritage.R -t NCI/NRY_Silcocks -v Branch_Family")
 ```
 
-#### Average marriage distance
-
-```{r}
-village_location = read.csv("data/metadata_villagedata.csv") %>% 
-  select(village, Latitude, Longitude) %>% 
-  distinct(village, .keep_all = TRUE) %>% 
-  filter(village != "" & !is.na(village) & !is.na(Latitude))
-
-village_distance = distm(village_location[, c("Longitude", "Latitude")], fun = distHaversine)
-dimnames(village_distance) = list(village_location$village, village_location$village)
-
-fathers_village = metadata$father_village[metadata$father_village %in% rownames(village_distance)]
-mothers_village = metadata$mother_village[metadata$mother_village %in% rownames(village_distance)]
-
-parents_dist = c()
-for(i in 1:nrow(metadata)){
-  fv = metadata$father_village[i]
-  mv = metadata$mother_village[i]
-  
-  if(fv %in% rownames(village_distance) & mv %in% rownames(village_distance)){
-    parents_dist[i] = village_distance[fv, mv]  
-  }
-  
-}
-
-
-```
-
 #### mtDNA Trait heritage
 
 ```{r echo=FALSE}
 mcct_tree = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru.mcct.trees")
 
 language_probability = 
-  read.csv("results/interview_languagefamily_mtDNA_N-papua_n_daru_languagefamily.csv")
+  read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_languagefamily.csv")
 
 permuted_probability = 
-  read.csv("results/interview_languagefamily_mtDNA_N-papua_n_daru_permuted_languagefamily.csv")
+  read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_permuted_languagefamily.csv")
 
 summarizer = function(posterior){
   posterior$generation_time = as.numeric(gsub("g_", replacement = "", posterior$generation))
@@ -325,12 +297,12 @@ cleaned_tips = gsub("_.*","", mcct_tree$tip.label)
 mcct_tree$tip.label = cleaned_tips
 
 metadata_ss = metadata[metadata$ID %in% mcct_tree$tip.label, ]
-mcct_tree = keep.tip(mcct_tree, metadata_ss$ID[!is.na(metadata_ss$interview_languagefamily)])
+mcct_tree = keep.tip(mcct_tree, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
 
-tree_data = full_join(mcct_tree, metadata, by = c("label" = "ID"))
+tree_data = full_join(mcct_tree, metadata_ss, by = c("label" = "ID"))
 
 #### plot 
-p_tree = ggtree(tree_data) + geom_tippoint(aes(color = daru)) +
+p_tree = ggtree(tree_data) + geom_tippoint(aes(color = Branch_Family)) +
   scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
                      labels = c("10k", "20k", "30k", "40k")) +
   layout_dendrogram() + 
@@ -372,9 +344,9 @@ p_tree + p_prob +
 These next graphs show the probability of shared language family against geographic proximity. we test geographic proximity at three distances: are two individuals within 50km of each other, 100kms, or 200kms.
 
 ```{r}
-distance50_probability = read.csv("results/interview_languagefamily_mtDNA_N-papua_n_daru_distance50.csv")
-distance100_probability = read.csv("results/interview_languagefamily_mtDNA_N-papua_n_daru_distance100.csv")
-distance200_probability = read.csv("results/interview_languagefamily_mtDNA_N-papua_n_daru_distance200.csv")
+distance50_probability = read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_distance50.csv")
+distance100_probability = read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_distance100.csv")
+distance200_probability = read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_distance200.csv")
 
 distance_summary = lapply(list(short = distance50_probability,
                         medium = distance100_probability,
@@ -651,5 +623,16 @@ ggplot(data = distance_summary,
   xlab("Time (years)") + 
   ylab("Probability") + 
   theme_classic()
+
+```
+
+## Stable Clades
+
+We further test the correlation between linguistic affiliation and genetic clades by testing trait stability across the posterior sample of trees. To do this, each individual within a phylogeny is assigned a trait. For a particular phylogeny, we identify all genetic clades where the trait is the same between all individuals. We then look across the posterior of phylogeny and identify clades that exist in more than 50% of the posterior (i.e. are stable clades).
+
+```{r}
+stable_clades = tmrca(trees, states)
+
+
 
 ```
