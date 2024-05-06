@@ -25,7 +25,7 @@ option_list = list(
   make_option(
     c("-t", "--tree"),
     action = "store",
-    default = "NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees",
+    default = "NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees",
     type = 'character',
     help = "the location of the tree to use"
   ),
@@ -47,7 +47,7 @@ n_cores = 8
 n_tree = 100
 
 ## Read in the tree ####
-tree = ape::read.nexus(tree_file)
+tree = ape::read.tree(tree_file)
 
 tree = tree[(length(tree)-n_tree):length(tree)]
 

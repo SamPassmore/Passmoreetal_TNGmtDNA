@@ -6,6 +6,8 @@ editor: visual
 bibliography: references.bib
 ---
 
+### Software Packages
+
 Here we load all necessary packages to build the supplementary material.
 
 ```{r message=FALSE}
@@ -27,9 +29,11 @@ library(geosphere)
 
 # For Plots
 library(ggplot2)
+library(ggridges)
 library(ggtree)
 library(treeio)
 library(patchwork)
+library(scales)
 
 # For Maps
 library(terra)
@@ -38,24 +42,6 @@ library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(ggspatial)
-```
-
-## Genetic Data
-
-This project uses a set of newly collected genetic samples from Southern New Guinea, collected in 2019 as part of the Papuan Past project, and leverages existing samples drawn from XXX, also collected from the Papuan Past Project.
-
-In total, we analyse a sample of 903 mitogenomes and 72 non-recombinant Y chromosomes (NRY).
-
-### mtDNA Samples
-
-mtDNA samples were sequenced using \[what technology?\] <!--# How was this done? Probably ask Franois-Xavier -->. Sequences are reconstructed tfrom the Revised Cambridge Reference Sequence (rCRS). See script `processing/create_reference_genomes.R` for processing details.
-
-```{r}
-if(!file.exists("processed_data/papua_n.fasta") & 
-   !file.exists("processed_data/papua_m.fasta")){
-  system("RScript processing/create_reference_genomes.R")  
-}
-
 ```
 
 ### Linguistic Metadata
@@ -169,7 +155,22 @@ ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 # Building Phylogenies
 
+## Genetic Data
+
+This project uses a set of newly collected genetic samples from Southern New Guinea, collected in 2019 as part of the Papuan Past project, and leverages existing samples drawn from XXX, also collected from the Papuan Past Project.
+
+In total, we analyse a sample of 903 mitogenomes and 72 non-recombinant Y chromosomes (NRY).
+
 ## mtDNA
+
+mtDNA samples were sequenced using \[what technology?\] <!--# How was this done? Probably ask Franois-Xavier -->. Sequences are reconstructed tfrom the Revised Cambridge Reference Sequence (rCRS). See script `processing/create_reference_genomes.R` for processing details.
+
+```{r}
+if(!file.exists("processed_data/papua_n.fasta") & 
+   !file.exists("processed_data/papua_m.fasta")){
+  system("RScript processing/create_reference_genomes.R")  
+}
+```
 
 We have split mtDNA samples into M and N haplotype groups for computational efficiency.
 
@@ -257,26 +258,45 @@ The trait heritage functions have been collected into a package that can be foun
 ## Results
 
 ```{r eval = FALSE}
+## TEMPORARY TREE PRUNE ##
+n_tree = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru.trees")
+n_tree = lapply(n_tree, function(t)
+  keep.tip(t, metadata$ID[metadata$haplogroup_MN == "N" & 
+                            metadata$ID %in% n_tree[[1]]$tip.label]))
+  
+# tt = as.mul(n_tree)
+# class(n_tree) = "multiPhylo"
+ape::write.nexus(n_tree, file = "NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees")
+
+m_tree = read.nexus("NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees")
+m_tree = lapply(m_tree, function(t)
+  keep.tip(t, metadata$ID[metadata$haplogroup_MN == "M" & 
+                            metadata$ID %in% m_tree[[1]]$tip.label]))
+class(m_tree) = "multiPhylo"
+write.tree(m_tree, "NCI/mtDNA_M/mtDNA_M-papua_m_daru_pruned.trees")
+
 # mtDNA N Haplotypes
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru.trees -v Branch_Family")
+system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees -v Branch_Family")
 
 # mtDNA M Haplotypes
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees -v Branch_Family")
+system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_M/mtDNA_M-papua_m_daru_pruned.trees -v Branch_Family")
 
 # Non-recombinant Y 
 system("Rscript analysis/posterior_trait_heritage.R -t NCI/NRY_Silcocks -v Branch_Family")
 ```
 
-#### mtDNA Trait heritage
+### Trait heritage
+
+#### mtDNA N Haplotype
 
 ```{r echo=FALSE}
-mcct_tree = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru.mcct.trees")
+mcct_tree_mtdnaN = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.mcct.trees")
 
 language_probability = 
   read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_languagefamily.csv")
 
 permuted_probability = 
-  read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_permuted_languagefamily.csv")
+  read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_pruned_permuted_languagefamily.csv")
 
 summarizer = function(posterior){
   posterior$generation_time = as.numeric(gsub("g_", replacement = "", posterior$generation))
@@ -293,16 +313,17 @@ summarizer = function(posterior){
 posterior_summary = summarizer(language_probability)
 permuted_summary = summarizer(permuted_probability )
 
-cleaned_tips = gsub("_.*","", mcct_tree$tip.label)
-mcct_tree$tip.label = cleaned_tips
+cleaned_tips = gsub("_.*","", mcct_tree_mtdnaN$tip.label)
+mcct_tree_mtdnaN$tip.label = cleaned_tips
 
-metadata_ss = metadata[metadata$ID %in% mcct_tree$tip.label, ]
-mcct_tree = keep.tip(mcct_tree, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
+metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaN$tip.label, ]
+mcct_tree_mtdnaN = keep.tip(mcct_tree_mtdnaN, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
 
-tree_data = full_join(mcct_tree, metadata_ss, by = c("label" = "ID"))
+tree_data = full_join(mcct_tree_mtdnaN, metadata_ss, by = c("label" = "ID"))
 
 #### plot 
-p_tree = ggtree(tree_data) + geom_tippoint(aes(color = Branch_Family)) +
+p_tree = ggtree(tree_data) + 
+  geom_tippoint(aes(col = Branch_Family), shape = "\u2588", size = 1.5) +
   scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
                      labels = c("10k", "20k", "30k", "40k")) +
   layout_dendrogram() + 
@@ -396,10 +417,10 @@ ggplot(data = distance_summary,
 
 ```
 
-#### mtDNA - M Haplotype
+#### mtDNA M Haplotype
 
 ```{r}
-mcct_tree = read.nexus("NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.mcct.trees")
+mcct_tree_mtdnaM = read.nexus("NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.mcct.trees")
 
 language_probability = 
   read.csv("results/interview_languagefamily_mtDNA_M-papua_m.noburnin_languagefamily.csv")
@@ -411,13 +432,13 @@ permuted_probability =
 posterior_summary = summarizer(language_probability)
 permuted_summary = summarizer(permuted_probability )
 
-cleaned_tips = gsub("_.*","", mcct_tree$tip.label)
-mcct_tree$tip.label = cleaned_tips
+cleaned_tips = gsub("_.*","", mcct_tree_mtdnaM$tip.label)
+mcct_tree_mtdnaM$tip.label = cleaned_tips
 
-metadata_ss = metadata[metadata$ID %in% mcct_tree$tip.label, ]
-mcct_tree = keep.tip(mcct_tree, metadata_ss$ID[!is.na(metadata_ss$interview_languagefamily)])
+metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaM$tip.label, ]
+mcct_tree_mtdnaM = keep.tip(mcct_tree_mtdnaM, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
 
-tree_data = full_join(mcct_tree, metadata, by = c("label" = "ID"))
+tree_data = full_join(mcct_tree_mtdnaM, metadata, by = c("label" = "ID"))
 
 #### plot 
 p_tree = ggtree(tree_data) + geom_tippoint(aes(color = interview_languagefamily)) +
@@ -513,7 +534,7 @@ ggplot(data = distance_summary,
 #### NRY Trait Heritage
 
 ```{r echo = FALSE}
-mcct_tree = read.nexus("NCI/NRY_Silcocks/KEEP.PNG.103.CHRY.MCC.tree")
+mcct_tree_NRY = read.nexus("NCI/NRY_Silcocks/KEEP.PNG.103.CHRY.MCC.tree")
 
 language_probability = 
   read.csv("results/interview_languagefamily_KEEP.PNG.103.CHRY_languagefamily.csv")
@@ -525,14 +546,14 @@ permuted_probability =
 posterior_summary = summarizer(language_probability)
 permuted_summary = summarizer(permuted_probability )
 
-cleaned_tips = gsub("_.*","", mcct_tree$tip.label)
-mcct_tree$tip.label = cleaned_tips
+cleaned_tips = gsub("_.*","", mcct_tree_NRY$tip.label)
+mcct_tree_NRY$tip.label = cleaned_tips
 
 metadata$ID = gsub("-.*","", metadata$ID)
-metadata_ss = metadata[metadata$ID %in% mcct_tree$tip.label, ]
-mcct_tree = keep.tip(mcct_tree, metadata_ss$ID[!is.na(metadata_ss$interview_languagefamily)])
+metadata_ss = metadata[metadata$ID %in% mcct_tree_NRY$tip.label, ]
+mcct_tree_NRY = keep.tip(mcct_tree_NRY, metadata_ss$ID[!is.na(metadata_ss$interview_languagefamily)])
 
-tree_data = full_join(mcct_tree, metadata_ss, by = c("label" = "ID"))
+tree_data = full_join(mcct_tree_NRY, metadata_ss, by = c("label" = "ID"))
 
 #### plot 
 p_tree = ggtree(tree_data) + geom_tippoint(aes(color = interview_languagefamily)) +
@@ -630,9 +651,116 @@ ggplot(data = distance_summary,
 
 We further test the correlation between linguistic affiliation and genetic clades by testing trait stability across the posterior sample of trees. To do this, each individual within a phylogeny is assigned a trait. For a particular phylogeny, we identify all genetic clades where the trait is the same between all individuals. We then look across the posterior of phylogeny and identify clades that exist in more than 50% of the posterior (i.e. are stable clades).
 
-```{r}
-stable_clades = tmrca(trees, states)
+#### mtDNA N Haplotypes
 
+```{r}
+if(!file.exists("results/mtDNA_N_stableclades.csv")){
+  system("RScript analysis/stable_clades.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees -v Branch_Family")
+}
+
+## Metadata 
+metadata = read.csv("processed_data/genetic_samples.csv")
+
+stable_clades_summary = read.csv("results/mtDNA_N_stableclades_summary.csv")
+
+states_df = data.frame(states = metadata$Branch_Family, label = metadata$ID)
+states_df = left_join(states_df, metadata[, c("ID", "gender")], by = c("label" = "ID"))
+
+mcct_tree_mtdnaN = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.mcct.trees")
+
+# clean IDs
+metadata$ID = gsub("-.*","", metadata$ID)
+
+# subset to taxa in the phylogeny
+metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaN$tip.label,]
+
+# extract the trait of interest
+trait = metadata_ss$Branch_Family
+trait[trait == ""] = NA
+names(trait) = metadata_ss$ID
+
+# remove missing traits
+trait = trait[!is.na(trait)]
+trait_df = data.frame(states = factor(trait), label = names(trait))
+
+# match traits and tips
+plot_tree = keep.tip(mcct_tree_mtdnaN, names(trait))
+plot_tree = ladderize(plot_tree)
+
+nodes = sapply(stable_clades_summary$tips, function(x)
+  phytools::findMRCA(plot_tree, tips = unlist(strsplit(x, "; ")))) %>% 
+  as.data.frame()
+colnames(nodes) = "node"
+nodes$tips = rownames(nodes)
+
+# nodes_df = data.frame(nodes = nodes, type = stable_clades_summary$state)
+nodes_df = left_join(stable_clades_summary, nodes, by = "tips")
+
+tree_df = tidytree::left_join(plot_tree, trait_df, by = "label") 
+
+## set colours
+family_colours = setNames(scales::hue_pal()(17), levels(trait_df$states))
+
+p1 = ggtree(tree_df, layout="roundrect", ladderize = TRUE, mrsd = "2023-01-01") + 
+  geom_tippoint(aes(colour = states), shape = "\u25ac", size = 4.0) +
+  geom_hilight(data=nodes_df, aes(node = node, fill = state),
+               type = "roundrect",
+               to.bottom = FALSE) +
+  labs(title = "N Haplotypes") + 
+  theme_classic(base_size = 20) + 
+  theme_tree2()
+p1
+
+
+### Distributions
+fit = read.csv("results/mtDNA_N_stableclades_all.csv")
+fit2 = fit %>% 
+  dplyr::filter(tips %in% stable_clades_summary$tips)
+
+ggplot(fit2, aes(x = Date, y = state, fill = state, col = state)) + 
+  geom_point(alpha = 0.2) + 
+  geom_density_ridges(rel_min_height = 0.01)
+  
+  
+
+```
+
+#### mtDNA M Haplotypes
+
+```{r}
+if(!file.exists("results/mtDNA_M_stableclades.csv")){
+    system("RScript analysis/stable_clades.R -t NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees -v Branch_Family")
+}
+
+mcct_tree_mtdnaM = read.nexus("NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.mcct.trees")
+
+stable_clades = read.csv("results/mtDNA_M_stableclades.csv")
+
+states_df = data.frame(states = metadata_ss$Branch_Family, label = metadata_ss$ID)
+states_df = left_join(states_df, metadata_ss[, c("ID", "gender")], by = c("label" = "ID"))
+
+plot_tree = keep.tip(mcct_tree_mtdnaM, 
+                     states_df$label[states_df$label %in% mcct_tree_mtdnaN$tip.label])
+
+nodes = sapply(stable_clades$tips, function(x)
+  phytools::findMRCA(plot_tree, tips = unlist(strsplit(x, "; "))))
+
+phytools::findMRCA(plot_tree, tips = unlist(strsplit(stable_clades$tips[1], "; ")))
+nodes_df = data.frame(nodes = nodes, type = stable_clades$state)
+
+p1 = ggtree(tree_df, layout="roundrect", ladderize = TRUE, mrsd = "2023-01-01") + 
+  geom_tippoint(aes(colour = states, shape = gender)) +
+  geom_hilight(data=nodes_df, aes(node = nodes, fill = type),
+               type = "roundrect",
+               to.bottom = FALSE) +
+  labs(title = "N Haplotypes") + 
+  theme_classic(base_size = 20) + 
+  theme_tree2()
+p1
 
 
 ```
+
+#### 
+
+#### Non-Recombinant Y Chromosomes

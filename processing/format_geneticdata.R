@@ -284,8 +284,8 @@ genetic_data = genetic_data[!genetic_data$interview_language == "TO EXCLUDE",]
 genetic_data$interview_language[genetic_data$interview_language == "None given"] = NA
 
 # check it worked
-any(genetic_data$interview_language == "TO EXCLUDE", na.rm = T)
-any(genetic_data$interview_language == "None given", na.rm = T)
+!any(genetic_data$interview_language == "TO EXCLUDE", na.rm = T)
+!any(genetic_data$interview_language == "None given", na.rm = T)
 
 #### Standardization ####
 genetic_data$gender = ifelse(genetic_data$gender == "m", "M",
@@ -308,5 +308,21 @@ genetic_data = left_join(genetic_data, tng, by = "interview_language")
 genetic_data$latitude_hybrid = coalesce(genetic_data$latitude_ofsampling, genetic_data$LATITUDE)
 genetic_data$longitude_hybrid = coalesce(genetic_data$longitude_ofsampling, genetic_data$LONGITUDE)
 
-# write raw data
+##### Write the raw data ####
+# Comma seperated
 write.csv(genetic_data, 'processed_data/genetic_samples.csv', row.names = FALSE, na = "")
+
+# tab seperate for TreeViewer
+picks = c("ID", "Branch_Family", "interview_language")
+tsv = genetic_data[, picks]
+tsv$Branch_Family[is.na(tsv$Branch_Family)] = "Missing"
+
+
+write.table(
+  tsv,
+  'processed_data/genetic_samples.tsv',
+  row.names = FALSE,
+  na = "",
+  sep = "\t",
+  quote = FALSE
+)
