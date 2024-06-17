@@ -55,43 +55,7 @@ library(ggspatial)
 
 ### Linguistic Metadata
 
-For the new samples, participants were asked a series of questions about their cultural and linguistic heritage. These questions are listed below:
-
-> What is your gender?
->
-> Where were you born?
->
-> Where do you currently live?
->
-> Where have you previously lived?
->
-> What language(s) do you speak?
->
-> What Tribe are you from?
->
-> What Clan are you from?
->
-> Where was your Father / Mother born?
->
-> What language(s) does your Father / Mother speak
->
-> What was your Father's / Mother's Tribe?
->
-> What was your Father's / Mother's Clan?
-
-For samples taken in the 2019 field visit, we also asked these additional questions:
-
-> Where was your FF / FM / MM / MF born?
->
-> What language(s) does your FF / FM / MM / MF speak?
->
-> What was your FF / FM / MM / MF 's Tribe?
->
-> What was your FF / FM / MM / MF 's Clan?
->
-> Which hand is your dominant hand? \* related to other research questions not discussed here
-
-From the questions on language, we also infer the language families that individuals and relatives speak. Existing samples also contained information on the language which individuals speak. Since the broader genetic sample was collected across a number of different studies, we make some decisions on language names, locations, and the comparability of questions across samples. See script `processing/format_geneticdata.R` for details on metadata cleaning and alignment.
+Our genetic data was taken from a range of sources (see Supplementary Table X <!--# This will be a table of where the samples were taken -->). In each case. there was a variant of the question "What is your primary language?". In Y cases, language was inferred based on the village from which the sample was taken. All coding decisions on language names, locations, and the comparability of questions across samples are detailed in the script `processing/format_geneticdata.R`.
 
 ```{r echo=FALSE}
 if(!file.exists("processed_data/genetic_samples.csv")){

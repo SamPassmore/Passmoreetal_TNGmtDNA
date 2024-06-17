@@ -171,15 +171,6 @@ village_coords = village_coords[,c("ID", "village", "LATITUDE", "LONGITUDE")]
 
 genetic_data = left_join(genetic_data, village_coords, by = c("ID", "village"))
 
-#### Add Samples used in Y-analysis ####
-male_samples = read.csv("male_samples.txt")
-
-id_matches = gsub("-.*","", genetic_data$ID)
-
-NRY_data = id_matches %in% male_samples[,1]
-
-genetic_data$NRY_sample = NRY_data
-
 ## In the metadata received from Brucato & Ricaut, there is no metadata for B00IEVO-PNG82 
 ## But some metadata exists for this individual in Pedro 2020 metadata. Why has this been dropped? 
 
