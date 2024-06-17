@@ -175,27 +175,21 @@ This model can be described as: **GTR+G4+I**
 
 #### Clock model / Mutation Rates
 
-We use a strict clock mutation rate, with a normal prior. Setting a normal prior on the mutation rate means we accommodate uncertainty in the tree-wide rate, but rates do no vary across branches, as is standard with a strict clock.
-
-We determine mtDNA mutations rates from studies calibrating the human mitochondrial clock (@rieux2014, @fu2013). In both studies we consider the whole genome substitution rate. We take the mean mutation rate from both papers to be the mean of the normal prior, and the lowest and highest rates in the range to be the upper and lower values of the distribution.
+We use a strict clock mutation rate. We determine mtDNA mutations rates from studies calibrating the human mitochondrial clock (@rieux2014, @fu2013). In both studies we consider the whole genome substitution rate. We take the mean mutation rate from both papers to determine our rate.
 
 |             Paper | Estimated Mean Mutation Rate |  Estimated 95% C.I.   |
 |------------------:|:----------------------------:|:---------------------:|
 |    Fu et al. 2013 |        2.67 x 10^-8^         | 2.16 - 3.16 x 10^-8^  |
 | Rieux et al. 2014 |        2.143 x 10^-8^        | 1.58 - 2.706 x 10^-8^ |
-|         Used here |       2.4065 x 10^-8^        | 1.58 - 3.16 x 10^-8^  |
-
-To estimate the standard deviation we use the following formula:
-
-$$
-SD = \frac{\sqrt{N} * (Upper.CI - Lower.CI)}{t_v(0.05, N) \times 2} 
-$$
-
-which gives the result: 1.04 x 10^-8^
+|         Used here |       2.4065 x 10^-8^        |          \-           |
 
 ### Tree Prior
 
 We use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci (Heled & Drummond, 2008). The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate.
+
+We compare the EBSP model with the Coalescent Bayesian Skyline model to determine if the added complexity of the skyline model is justified.
+
+\[Table of model comparisons\]
 
 ### MCMC Settings
 
@@ -284,7 +278,7 @@ m_tree = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.trees")
 # Prune the tree for all individuals for which we have language data for
 keep_tips = c(metadata$ID[metadata$haplogroup_MN == "M" & 
                             metadata$ID %in% m_tree[[1]]$tip.label],
-              "HGDP00546") # Keep the outgroup label
+              "HGDP00545") # Keep the outgroup label
 
 m_tree = lapply(m_tree, function(t)
   keep.tip(t, keep_tips))
