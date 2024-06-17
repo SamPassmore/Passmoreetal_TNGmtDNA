@@ -57,7 +57,9 @@ library(ggspatial)
 
 Our genetic data was taken from a range of sources (see Supplementary Table X <!--# This will be a table of where the samples were taken -->). In each case. there was a variant of the question "What is your primary language?". In Y cases, language was inferred based on the village from which the sample was taken. All coding decisions on language names, locations, and the comparability of questions across samples are detailed in the script `processing/format_geneticdata.R`.
 
-```{r echo=FALSE}
+In the tables below, we list some summary statistics.
+
+```{r metadata echo=FALSE}
 if(!file.exists("processed_data/genetic_samples.csv")){
   system("RScript processing/format_geneticdata.R")
 }
