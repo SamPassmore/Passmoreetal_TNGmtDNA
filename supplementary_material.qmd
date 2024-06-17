@@ -103,7 +103,7 @@ We could consider Paiwaian as Tereban. SP needs to talk to NE about the strength
 
 #### mtDNA
 
-```{r}
+```{r map}
 if(!file.exists("figures/base_map.Rdata")){
   system("Rscript base_map.R")
 } else {
@@ -112,10 +112,10 @@ if(!file.exists("figures/base_map.Rdata")){
 }
 
 p = base_map + 
-  geom_count(data = metadata, aes(x = round(longitude_hybrid, 0), 
-                                  y = round(latitude_hybrid, 0)),
+  geom_count(data = metadata, aes(x = longitude_hybrid, 
+                                  y = latitude_hybrid),
              fill = "#FF5732",
-             pch = 21, alpha = 0.5, lwd = 10) + 
+             pch = 4, alpha = 0.5) + 
   ylab("Latitude") + xlab("Longitude") + 
   guides(col=guide_legend(title=element_blank())) +
   scale_color_hue(labels = c("Not Daru" = "Existing", "Daru" = "New")) + 
@@ -134,7 +134,7 @@ ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 This project uses a set of newly collected genetic samples from Southern New Guinea, collected in 2019 as part of the Papuan Past project, and leverages existing samples drawn from XXX, also collected from the Papuan Past Project.
 
-In total, we analyse a sample of 903 mitogenomes and 72 non-recombinant Y chromosomes (NRY).
+In total, we analyse a sample of 903 mitogenomes.
 
 ## mtDNA
 
@@ -147,27 +147,15 @@ if(!file.exists("processed_data/papua_n.fasta") &
 }
 ```
 
-We have split mtDNA samples into M and N haplotype groups for computational efficiency.
-
-<!--# might exclude the IQTree bit -->
-
-For an initial assessment of appropriate models, we ran IQTree2 [@minh2020]. This command constructs a maximum-likelihood tree for 1000 bootstraps, testing the likelihood of XX models.
-
-```{bash eval = FALSE}
-iqtree2 -s ./processed_data/papua_m.fasta -B 1000 -T AUTO
-iqtree2 -s ./processed_data/papua_n.fasta -B 1000 -T AUTO
-```
-
-These models returned the following results:
+We split mtDNA samples into M and N haplotype groups for computational efficiency. After also removing duplicate sequences, we have a sample of YY N haplogroup individuals, and 396 M haplogroup.
 
 We use BEAST v2.7.4 to infer the genealogical relationships between our set of XXX mitogenomes. Here we detail the decisions behind the parameters used for our phylogenetic models, which can also be found in the .xmls file associated with this project.
 
 ### Phylogenetic model testing
 
-We test a range of phylogenetic models to understand the phylogenetic structure of the mtDNA in New Guinea.
+### 
 
-1.  We use BEAST package bModeltest to assess the most appropriate Substitution model, with Coalescent Bayesian Population model.
-2.  We test the following Tree Priors, with a GTR-4 model
+1.  We test the following Tree Priors, with a GTR-4 model
     1.  **Coalescent Constant Population - Will be ok with a longer run (mean post = -39250.368)**
     2.  Coalescent Exponental Population - Looks a bit wobbly (mean post = -39219.659)
     3.  Coalescent Bayesian Skyline - Not great
@@ -177,7 +165,9 @@ We test a range of phylogenetic models to understand the phylogenetic structure 
 
 ### Substitution and Site model
 
-We use a General Time Reversible (GTR) model, with a Gamma prior containing four rate categories. A GTR model assumes different rates of change between the all nucleotides, and that those rates are bi-directional (i.e. adenine (A) to guanine (G) occurs at the same rate of G to A). A Gamma prior over the rates allows for rate heterogeneity across sites, with a possibility of four rate categories. The shape parameter is estimated, with a starting value of 1 (default).
+We use the BEAST package bModeltest to assess the most appropriate Substitution model, with Coalescent Bayesian Population model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model. For the M haplogroup data, the TIM model was the most commonly implemented.
+
+1.  . A Gamma prior over the rates allows for rate heterogeneity across sites, with a possibility of four rate categories. The shape parameter is estimated, with a starting value of 1 (default).
 
 Approximately 70% of sites are invariant, so we also implement an invariant sites model, which is estimated from the data. We use empirical base frequencies for each base in this model, and all rates are estimated, except for the CT rate. At least one of the substitutions rates needs to be fixed, because estimating them all leads to model unidentifiability. We fix the transition of CT to 1 in this model, since BEAST scales rates so that the average is 1. Fixing a transition rate is more stable than fixing a transversion rate.
 
@@ -210,10 +200,6 @@ We use a Coalescent Extended Bayesian Skyline Population history model (EBSP). T
 ### MCMC Settings
 
 We run the tree for 10,000,000 iterations, storing every 10,000 iterations.
-
-## Non-Recombinant Y (NRY)
-
-\[To Fill in\]
 
 # Trait Heritage
 
@@ -281,13 +267,43 @@ metadata_l = metadata %>%
   filter(ID %in% keep_tips) %>% 
   select(ID, interview_language)
 
-write.csv(metadata_l, "NCI/R")
+write.csv(metadata_l, "NCI/20240618_R_M/language_metadata.csv")
 
 # Save language clade metadata file
 metadata_lc = metadata %>% 
   filter(ID %in% keep_tips) %>% 
   select(ID, Branch_Family)
 
+write.csv(metadata_lc, "NCI/20240618_R_N/languageclade_metadata.csv")
+```
+
+```{r}
+# Read in the M Haplotype tree
+m_tree = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.trees")
+
+# Prune the tree for all individuals for which we have language data for
+keep_tips = c(metadata$ID[metadata$haplogroup_MN == "M" & 
+                            metadata$ID %in% m_tree[[1]]$tip.label],
+              "HGDP00546") # Keep the outgroup label
+
+m_tree = lapply(m_tree, function(t)
+  keep.tip(t, keep_tips))
+
+ape::write.nexus(m_tree, file = "NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin_pruned.trees")
+
+# Save language metadata file
+metadata_l = metadata %>% 
+  filter(ID %in% keep_tips) %>% 
+  select(ID, interview_language)
+
+write.csv(metadata_l, "NCI/20240618_R_M/language_metadata.csv")
+
+# Save language clade metadata file
+metadata_lc = metadata %>% 
+  filter(ID %in% keep_tips) %>% 
+  select(ID, Branch_Family)
+
+write.csv(metadata_lc, "NCI/20240618_R_N/languageclade_metadata.csv")
 ```
 
 ```{r eval = FALSE}
@@ -772,122 +788,6 @@ ggsave(plot = pp_dist, file = "figures/mtDNA_M_CCP_distance.png",width = 1920, u
 
 ```
 
-#### NRY Trait Heritage
-
-```{r echo = FALSE}
-mcct_tree_NRY = read.nexus("NCI/NRY_Silcocks/KEEP.PNG.103.CHRY.MCC.tree")
-
-language_probability = 
-  read.csv("results/interview_languagefamily_KEEP.PNG.103.CHRY_languagefamily.csv")
-
-permuted_probability = 
-  read.csv("results/interview_languagefamily_KEEP.PNG.103.CHRY_permuted_languagefamily.csv")
-
-# Summarise the posterior
-posterior_summary = summarizer(language_probability)
-permuted_summary = summarizer(permuted_probability )
-
-cleaned_tips = gsub("_.*","", mcct_tree_NRY$tip.label)
-mcct_tree_NRY$tip.label = cleaned_tips
-
-metadata$ID = gsub("-.*","", metadata$ID)
-metadata_ss = metadata[metadata$ID %in% mcct_tree_NRY$tip.label, ]
-mcct_tree_NRY = keep.tip(mcct_tree_NRY, metadata_ss$ID[!is.na(metadata_ss$interview_languagefamily)])
-
-tree_data = full_join(mcct_tree_NRY, metadata_ss, by = c("label" = "ID"))
-
-#### plot 
-p_tree = ggtree(tree_data) + geom_tippoint(aes(color = interview_languagefamily)) +
-  layout_dendrogram() + 
-  scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
-                     labels = c("10k", "20k", "30k", "40k")) + 
-  theme(legend.position = "none", 
-        axis.ticks.y = element_line(),
-        axis.line.y = element_line(),
-        axis.text.y = element_text())
-
-# match scales in each plot
-x_range = layer_scales(p_tree)$x$range$range
-  
-p_prob = ggplot(data = posterior_summary,
-                aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5) + 
-  geom_line(col = "blue") + 
-  geom_ribbon(data = permuted_summary, 
-              aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob),
-              fill = "lightgreen", alpha = 0.5) + 
-  geom_line(data = permuted_summary, 
-              aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") + 
-  ylim(c(0, 1)) +
-  xlim(x_range) + ## max tree height (or max p_tree?)
-  coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  # scale_x_continuous(expand = c(0, 0)) + 
-  # scale_y_continuous(expand = c(0, 0)) + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5))
-
-p_tree + p_prob + 
-  plot_layout(widths = c(1, 0.25))
-
-```
-
-```{r}
-distance50_probability = read.csv("results/interview_languagefamily_KEEP.PNG.102.CHRY_distance50.csv")
-distance100_probability = read.csv("results/interview_languagefamily_KEEP.PNG.103.CHRY_distance100.csv")
-distance200_probability = read.csv("results/interview_languagefamily_KEEP.PNG.103.CHRY_distance200.csv")
-
-distance_summary = lapply(list(short = distance50_probability,
-                        medium = distance100_probability,
-                        long = distance200_probability), 
-                        summarizer)
-
-distance_summary = bind_rows(distance_summary, .id = "distance")
-distance_summary$distance = factor(distance_summary$distance, 
-                                   levels = c("short", "medium", "long"))
-
-facet_names = c(`short` = "w/n 50km",
-                `medium` = "w/n 100km",
-                `long` = "w/n 200km")
-
-ggplot(data = distance_summary,
-       aes(
-         ymin = CI_low,
-         ymax = CI_high,
-         x = generation_time,
-         y = mean.prob
-       )) +
-  geom_ribbon(fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = distance_summary,
-            aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  facet_grid(~ distance, labeller = as_labeller(facet_names)) +
-  geom_ribbon(
-    data = posterior_summary,
-    aes(
-      ymin = CI_low,
-      ymax = CI_high,
-      x = generation_time,
-      y = mean.prob
-    ),
-    fill = "lightblue",
-    alpha = 0.5
-  ) + geom_line(data = posterior_summary,
-                aes(x = generation_time,
-                    y = mean.prob),
-                col = "blue") +
-  scale_x_reverse(breaks = c(0, 20000, 40000, 60000, 80000, 100000),
-                  labels = c("0", "20k", "40k", "60k", "80k", "100k")) + 
-  xlab("Time (years)") + 
-  ylab("Probability") + 
-  theme_classic()
-
-```
-
 ## Stable Clades
 
 We further test the correlation between linguistic affiliation and genetic clades by testing trait stability across the posterior sample of trees. To do this, each individual within a phylogeny is assigned a trait. For a particular phylogeny, we identify all genetic clades where the trait is the same between all individuals. We then look across the posterior of phylogeny and identify clades that exist in more than 50% of the posterior (i.e. are stable clades).
@@ -1035,8 +935,6 @@ p1
 ```
 
 #### 
-
-#### Non-Recombinant Y Chromosomes
 
 ### Pairwise Between & Within group variance
 
