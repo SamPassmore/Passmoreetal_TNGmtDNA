@@ -5,6 +5,10 @@ format: html
 editor: visual
 ---
 
+# Substitution Models
+
+We use empirical base frequencies for each base in this model, and all rates are estimated, except for the CT rate. At least one of the substitutions rates needs to be fixed, because estimating them all leads to model unidentifiability. We fix the transition of CT to 1 in this model, since BEAST scales rates so that the average is 1. Fixing a transition rate is more stable than fixing a transversion rate.
+
 ## Parameters
 
 In BEAST, and under a Tree prior model of Bayesian Extended Coalescent Skyline (BECS), there are a number of parameters estimated at each node in the form of (e.g.) `popSize.alltrees.[number]`. The number of this parameter refers to the node of interest.

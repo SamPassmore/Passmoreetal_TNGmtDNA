@@ -128,7 +128,7 @@ ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 ```
 
-# Building Phylogenies
+# Phylogenetic Results
 
 ## Genetic Data
 
@@ -193,46 +193,20 @@ We compare the EBSP model with the Coalescent Bayesian Skyline model to determin
 
 ### MCMC Settings
 
-We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations.
+We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations. All necessary parameters have a ESS \> 200. We run the analyses twice to assess chain convergence. We take a burn-in of 20% <!--# check -->, which leaves us with a posterior sample of 8,000 trees for the M and N haplotypes, using the BEAST2 LogCombiner tool. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool.
 
-# Trait Heritage
+# Inference Results
 
-To estimate the fidelity of language transmission over time, we calculate the probability of two individuals sharing a language within a genetic clade, across multiple times point in the phylogenetic history. This calculation follow from [@lansing2017].
+## Language Metadata 
 
-$$
-P(i_l,j_l)|i_{g(t)}, j_{g(t)}) = \frac{P(i_l, j_l \bigcap i_{g(t)}, j_{g(t)})}{P(i_{g(t)}, j_{g(t)}} = \frac{\sum_{g=1}^{c_t}(\sum_{i,j\neq i}1_{cos(l_ig, l_jg) > 0})}{\sum_{g=1}^{c_t}n_g(n_g - 1) / 2}
-$$
-
-$c_t$ is the number of genetic clades at any point in history, for t generations. We assume 25 year generation times. $l_{i_g}$ and $l_{j_g}$ are the languages or language families spoken by individuals within genetic clade $g$. $1_{cos(l_{i_g}, l_{i_g}) > 0}$ is 1 if the ith and jth individual share a language, and zero otherwise. $n_g$ is the number of individuals in $g$.
-
-We calculate the trait heritage for a number of different traits.
-
--   Language of individual
-
--   Language clade of the individual
-
-We extend this calculation to calculate the probability of a trait given a further conditions
-
--   The shared language is a Trans-New Guinea language
-
--   The shared language is not a Trans-New Guinea language
-
-As with [@lansing2017], we compare the calculated probability with a permuted probability to determine whether languages are more likely to be shared by chance. We calculate XXX permutations per analysis.
-
-We apply the trait heritage function across a posterior of trees. Within each tree we calculate the probability from the data, and the XXX permutations.
-
-The trait heritage functions have been collected into a package that can be found here: <https://github.com/SamPassmore/traitheritage>
-
-## Results
-
-#### Metadata processing
-
-As set out above, we have divided the phylogenetic data into major haplogroups, M & N. For each of these phylogeneies we perform two analyses: the probability of sharing a trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, at the level of the langauge, and at the language clade level. This means for the two analyses, we have four results:
+As set out above, we have divided the phylogenetic data into major haplogroups, M & N. For each of these phylogeny we perform two analyses: the probability of sharing a trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, at the level of the language, and at the language clade level. This means for the two analyses, we have four results.
 
 1.  M Haplogroup - Language
 2.  M Haplogroup - Language Clade
 3.  N Haplogroup - Language
 4.  N Haplogroup - Language Clade
+
+The code below creates the necessary metadata files, connecting phylogeny taxa to their language and language clade.
 
 ```{r m_haplogroup_data}
 # Read in the M Haplotype tree
@@ -279,6 +253,36 @@ write.csv(metadata_n, "NCI/20240618_R_M/language_metadata.csv")
 ```
 
 ### Trait heritage
+
+To estimate the fidelity of language transmission over time, we calculate the probability of two individuals sharing a language within a genetic clade, across multiple times point in the phylogenetic history. This calculation follow from [@lansing2017].
+
+$$
+P(i_l,j_l)|i_{g(t)}, j_{g(t)}) = \frac{P(i_l, j_l \bigcap i_{g(t)}, j_{g(t)})}{P(i_{g(t)}, j_{g(t)}} = \frac{\sum_{g=1}^{c_t}(\sum_{i,j\neq i}1_{cos(l_ig, l_jg) > 0})}{\sum_{g=1}^{c_t}n_g(n_g - 1) / 2}
+$$
+
+$c_t$ is the number of genetic clades at any point in history, for t generations. We assume 25 year generation times. $l_{i_g}$ and $l_{j_g}$ are the languages or language families spoken by individuals within genetic clade $g$. $1_{cos(l_{i_g}, l_{i_g}) > 0}$ is 1 if the ith and jth individual share a language, and zero otherwise. $n_g$ is the number of individuals in $g$.
+
+We extend this model to calculate the probability that two individuals share a particular language, rather than calculating the probability of sharing a language on average. This allows a more fine-grained view of the language-genetic connection. This approach has been compiled in the function `trait_heritage` within the package `traitheritage`, developed for this project. The trait heritage package can be found here: <https://github.com/SamPassmore/traitheritage>
+
+We calculate the trait heritage for a number of different traits.
+
+-   Language of individual
+
+-   Language clade of the individual
+
+We extend this calculation to calculate the probability of a trait given a further conditions
+
+-   The shared language is a Trans-New Guinea language
+
+-   The shared language is not a Trans-New Guinea language
+
+As with [@lansing2017], we compare the calculated probability with a permuted probability to determine whether languages are more likely to be shared by chance. We calculate XXX permutations per analysis.
+
+We apply the trait heritage function across a posterior of trees. Within each tree we calculate the probability from the data, and the XXX permutations. This analysis was performed with computational resources provided by NCI Australia, an NCRIS enabled capability supported by the Australian Government. The code below exemplifies how to run the analyses, but they were not run from this document.
+
+```{bash}
+Rscript analysis/posterior_trait_heritage.R -t <path-to-phylogeny-posterior> -v <name-of-variable-in-metdata>
+```
 
 #### mtDNA N Haplotype
 
