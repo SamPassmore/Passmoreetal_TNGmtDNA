@@ -193,7 +193,7 @@ We compare the EBSP model with the Coalescent Bayesian Skyline model to determin
 
 ### MCMC Settings
 
-We run the tree for 10,000,000 iterations, storing every 10,000 iterations.
+We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations.
 
 # Trait Heritage
 
@@ -209,15 +209,7 @@ We calculate the trait heritage for a number of different traits.
 
 -   Language of individual
 
--   Language family of individual
-
--   Language of individual's father's father
-
--   Language of individual's mother's mother
-
--   Language family of individual's father's father
-
--   Language family of individual's mother's mother
+-   Language clade of the individual
 
 We extend this calculation to calculate the probability of a trait given a further conditions
 
@@ -242,7 +234,7 @@ As set out above, we have divided the phylogenetic data into major haplogroups, 
 3.  N Haplogroup - Language
 4.  N Haplogroup - Language Clade
 
-```{r}
+```{r m_haplogroup_data}
 # Read in the M Haplotype tree
 m_tree = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.trees")
 
@@ -254,85 +246,36 @@ keep_tips = c(metadata$ID[metadata$haplogroup_MN == "M" &
 m_tree = lapply(m_tree, function(t)
   keep.tip(t, keep_tips))
 
-ape::write.nexus(m_tree, file = "NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin_pruned.trees")
+ape::write.nexus(m_tree, file = "NCI/20240618_R_M/ [tree name]")
 
 # Save language metadata file
-metadata_l = metadata %>% 
+metadata_m = metadata %>% 
   filter(ID %in% keep_tips) %>% 
-  select(ID, interview_language)
+  select(ID, interview_language, Branch_Family)
 
-write.csv(metadata_l, "NCI/20240618_R_M/language_metadata.csv")
-
-# Save language clade metadata file
-metadata_lc = metadata %>% 
-  filter(ID %in% keep_tips) %>% 
-  select(ID, Branch_Family)
-
-write.csv(metadata_lc, "NCI/20240618_R_N/languageclade_metadata.csv")
+write.csv(metadata_m, "NCI/20240618_R_M/language_metadata.csv")
 ```
 
-```{r}
+```{r n_haplogroup_data}
 # Read in the M Haplotype tree
-m_tree = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.trees")
+n_tree = read.nexus("NCI/ N Tree ")
 
 # Prune the tree for all individuals for which we have language data for
-keep_tips = c(metadata$ID[metadata$haplogroup_MN == "M" & 
+keep_tips = c(metadata$ID[metadata$haplogroup_MN == "N" & 
                             metadata$ID %in% m_tree[[1]]$tip.label],
               "HGDP00545") # Keep the outgroup label
 
-m_tree = lapply(m_tree, function(t)
+n_tree = lapply(n_tree, function(t)
   keep.tip(t, keep_tips))
 
-ape::write.nexus(m_tree, file = "NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin_pruned.trees")
+ape::write.nexus(m_tree, file = "NCI/20240618_R_N/language_metadata.csv")
 
 # Save language metadata file
-metadata_l = metadata %>% 
+metadata_n = metadata %>% 
   filter(ID %in% keep_tips) %>% 
-  select(ID, interview_language)
+  select(ID, interview_language, Branch_Family)
 
-write.csv(metadata_l, "NCI/20240618_R_M/language_metadata.csv")
-
-# Save language clade metadata file
-metadata_lc = metadata %>% 
-  filter(ID %in% keep_tips) %>% 
-  select(ID, Branch_Family)
-
-write.csv(metadata_lc, "NCI/20240618_R_N/languageclade_metadata.csv")
-```
-
-```{r eval = FALSE}
-## TEMPORARY TREE PRUNE ##
-# n_tree = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru.trees")
-# n_tree = lapply(n_tree, function(t)
-#   keep.tip(t, metadata$ID[metadata$haplogroup_MN == "N" & 
-#                             metadata$ID %in% n_tree[[1]]$tip.label]))
-#   
-# class(n_tree) = "multiPhylo"
-# ape::write.nexus(n_tree, file = "NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees")
-
-m_tree = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.trees")
-
-keep_tips = c(metadata$ID[metadata$haplogroup_MN == "M" & 
-                            metadata$ID %in% m_tree[[1]]$tip.label],
-              "HGDP00546") # Keep the outgroup label
-
-m_tree2 = lapply(m_tree, function(t)
-  keep.tip(t, keep_tips))
-# class(m_tree2) = "multiPhylo"
-ape::write.nexus(m_tree2, file = "NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin_pruned.trees")
-# ape::write.tree(m_tree2, "NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin_pruned.trees")
-
-any(metadata$ID[metadata$haplogroup_MN == "M" | metadata$ID == "HGDP00546" & 
-                            metadata$ID %in% m_tree[[1]]$tip.label] == "HGDP00546")
-
-# mtDNA N Haplotypes
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees -v Branch_Family")
-
-# mtDNA M Haplotypes
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin_pruned.trees -v Branch_Family")
-
-# Non-recombinant Y 
-system("Rscript analysis/posterior_trait_heritage.R -t NCI/NRY_Silcocks -v Branch_Family")
+write.csv(metadata_n, "NCI/20240618_R_M/language_metadata.csv")
 ```
 
 ### Trait heritage
