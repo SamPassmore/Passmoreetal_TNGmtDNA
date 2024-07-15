@@ -15,6 +15,7 @@ Here we load all necessary packages to build the supplementary material.
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
 
+# These packages are installed via BiocManager
 # BiocManager::install("Biostrings")
 # BiocManager::install("treeio")
 # BiocManager::install("ggtree")
@@ -55,11 +56,12 @@ library(ggspatial)
 
 ### Linguistic Metadata
 
-Our genetic data was taken from a range of sources (see Supplementary Table X <!--# This will be a table of where the samples were taken -->). In each case. there was a variant of the question "What is your primary language?". In Y cases, language was inferred based on the village from which the sample was taken. All coding decisions on language names, locations, and the comparability of questions across samples are detailed in the script `processing/format_geneticdata.R`.
+Our genetic data was taken from a range of sources (see Supplementary Table X <!--# This will be a table of where the samples were taken -->). In each case. there was a variant of the question "What is your primary language?". In Y cases, language was inferred based on the location from which the sample was taken. All coding decisions on language names, locations, and the comparability of questions across samples are detailed in the script `processing/format_geneticdata.R`.
 
-In the tables below, we list some summary statistics.
+In the tables below, we list some summary statistics. A notable discrepancy is that there are more individuals with missing language families than missing languages. In three cases, respondents gave an answer of a language, but we cannot pair it to a language from existing databases. These are: Imani (n = 19), Eyagu (n = 1), and Kora (n = 1).
 
-```{r metadata echo=FALSE}
+```{r metadata, echo=FALSE}
+options(knitr.kable.NA = '')
 if(!file.exists("processed_data/genetic_samples.csv")){
   system("RScript processing/format_geneticdata.R")
 }
@@ -80,34 +82,33 @@ kable(g_tble, col.names = c("Gender", "Count"))
 l_tbl = as.data.frame(table(metadata$interview_language))
 colnames(l_tbl) = c("Language", "Samples")
 levels(l_tbl$Language)[levels(l_tbl$Language)==""] = "Missing"
-l_tbl1 = cbind(l_tbl[1:32,], l_tbl[33:64,])
-l_tbl2 = cbind(l_tbl[65:94,], l_tbl[95:124,])
-kable(l_tbl1, row.names = NA)
-kable(l_tbl2, row.names = NA)
+l_tbl1 = cbind(l_tbl[1:24,], l_tbl[25:48,])
+l_tbl2 = cbind(l_tbl[49:73,], l_tbl[74:98,])
+kable(l_tbl1, row.names = FALSE)
+kable(l_tbl2, row.names = FALSE)
 
 # Language Family samples
 lf_tbl = as.data.frame(table(metadata$Branch_Family))
 colnames(lf_tbl) = c("Language Family", "Samples")
 levels(lf_tbl$`Language Family`)[levels(lf_tbl$`Language Family`)==""] = "Missing"
+lf_tbl = cbind(lf_tbl[1:15,], lf_tbl[16:30,])
 kable(lf_tbl, row.names = NA)
 ```
 
-Some decisions of note:
+Linguistic decisions of note:
 
--   Paiwaian is a language which has disputed membership to TNG, and could also be considered as part of the Tereban family [@pawley2017]. We include this language as its own TNG branch, given we have a large sample of speakers (n = 52).
+-   Paiwaian (n = 52) is a language which has disputed membership to TNG, and could also be considered as part of the Tereban family [@pawley2017]. We include this language as a branch of TNG.
 
 ```         
 ::: {.callout-note}
 We could consider Paiwaian as Tereban. SP needs to talk to NE about the strength of evidence for doing this. 
 ```
 
--   We have one speaker of Orokolo, an Eleman language that is sometimes categorised as a TNG language. @pawley2017 write there is no evidence for this link. We do not categorise this family as TNG, however, since there is only one individual it is an inconsequential decision for our analysis.
+-   We have one speaker of Orokolo, an Eleman language that is sometimes categorised as a TNG language. @pawley2017 write there is no evidence for this link. We do not categorise this language as TNG.
 
 ### Maps of Samples
 
-#### mtDNA
-
-```{r map}
+```{r map, echo = FALSE, warning=FALSE, message=FALSE}
 if(!file.exists("figures/base_map.Rdata")){
   system("Rscript base_map.R")
 } else {
@@ -136,26 +137,28 @@ ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 ## Genetic Data
 
-This project leverages existing samples drawn from XXX papers. In total, we analyse a sample of 903 mitogenomes.
+This project leverages existing samples drawn from 14 papers, with an additional 7 unpublished samples. In total, we analyse a sample of 861 mitogenomes. See Supplementary Table XX for the original papers which details the sequencing technology used for each paper.
 
-mtDNA samples were sequenced using \[what technology?\] <!--# How was this done? Probably ask Franois-Xavier -->. Sequences are reconstructed tfrom the Revised Cambridge Reference Sequence (rCRS). See script `processing/create_reference_genomes.R` for processing details.
+mtDNA samples were sequenced using \[what technology?\] <!--# How was this done? Probably ask Franois-Xavier -->. Sequences are reconstructed from the Revised Cambridge Reference Sequence (rCRS). See script `processing/create_reference_genomes.R` for processing details. We split mtDNA samples into M and N haplotype groups for computational efficiency.
 
-```{r}
+```{r genetic_data_processing, echo = FALSE, eval=FALSE}
 if(!file.exists("processed_data/papua_n.fasta") & 
    !file.exists("processed_data/papua_m.fasta")){
   system("RScript processing/create_reference_genomes.R")  
 }
 ```
 
-We split mtDNA samples into M and N haplotype groups for computational efficiency. After also removing duplicate sequences, we have a sample of YY N haplogroup individuals, and 396 M haplogroup.
+### Duplicate mitogenomes
 
-We use BEAST v2.7.4 to infer the genealogical relationships between our set of XXX mitogenomes. Here we detail the decisions behind the parameters used for our phylogenetic models, which can also be found in the .xmls file associated with this project.
+There are 190 individuals with duplicate mtDNA mutations that group in to 107 distinct sets (i.e. some individuals have identical mitogenomes to multiple people). Of the 107 duplicate sets, 53 have mismatched language groupings.
 
-## Phylogenetic model testing
+For phylogenetic modelling, we do not include duplicate genomes, as the contain no additional information. We pick individuals at random.
 
-### Substitution and Site model
+## Phylogenetic model
 
-We use the BEAST package bModeltest to assess the most appropriate Substitution model, with Coalescent Bayesian Population model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model.
+We use BEAST v2.7.4 to infer the genealogical relationships between our set of XXX mitogenomes. We use the BEAST package bModeltest to assess the most appropriate Substitution model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model.
+
+We use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci [@heled2008]. The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate. We adjust the factor rate of the tree prior to 0.5, and chnge the population prior mean to an improper prior of 1/x, as suggested in @heled2008.
 
 For the M haplogroup data, the TIM model (Transition model, AC=GT, AT=CG and unequal base freq: 123341) was the most commonly implemented (45%). Gamma and Invariant site parameters were always present, with the Gamma shape estimated to 1.016, and 87.9% of all sites were invariant.
 
@@ -163,19 +166,13 @@ For the M haplogroup data, the TIM model (Transition model, AC=GT, AT=CG and une
 
 -   It may be because I put two identical monophyletic constraints in. I have run again (02/07/2024) to see if this fixes the wobbly MCMC Chain
 
-For the N haplogroup data, the TPM2 (AC=AT, AG=CT, CG=GT and equal base freq.: 121323) model was the most commonly implemented (24.4%). This was closely followed by the K80 or K2P model (121121, 18.05%). Gamma and Invariant site parameters were always present, with the Gamma shape estimated to 0.964, and 91.1% of all sites were invariant.
+For the N haplogroup data, the TPM2 (AC=AT, AG=CT, CG=GT and equal base freq.: 121323) model was the most commonly implemented (23.11%). This was closely followed by the K80 or K2P model (121121, 21.92%). Gamma and Invariant site parameters were always present, with the Gamma shape estimated to 0.964, and 91.1% of all sites were invariant.
 
--   After changing the operator values to try and get better runs the N Haplogroup phylogeny has not been covnerging
-
--   I reverted the operator values to their original value and have re-run sampling at half the rate to see if that improves convergence.
-
--   20240704: I have added a tree height prior: Normal distribution at 65k years with SD of 7500 years. 65k because that is the oldert archealogical data in Sahul. 7.5k SD means gives a 1 s.d. values of 80k years, which is a reasonable upper limit in terms of genetic history.
-
-In each of the M and N Haplogroup trees, we have one outlier from the opposing group, which is labelled as a monphyletic outlier in the analysis.
+In each of the M and N Haplogroup trees, we have one outlier from the opposing group, which is labelled as a monphyletic outlier in the analysis. In addition we imposed monophyletic groupings for the B4a1 and P haplogroups within the N phylogeny. Within the M phylogeny, we impost monophyletic groupings for E, Q and M haplogroups. Additionally, within M we create monophyletic groups for M27, M28, and M29.
 
 #### Clock model / Mutation Rates
 
-We use a strict clock mutation rate. We determine mtDNA mutations rates from studies calibrating the human mitochondrial clock (@rieux2014, @fu2013). In both studies we consider the whole genome substitution rate. We take the mean mutation rate from both papers to determine our rate.
+We use a strict clock mutation rate for M and N haplogroups. We determine mtDNA mutations rates from studies calibrating the human mitochondrial clock (@rieux2014, @fu2013). In both studies we consider the whole genome substitution rate. We take the mean mutation rate from both papers to determine our rate.
 
 |             Paper | Estimated Mean Mutation Rate |  Estimated 95% C.I.   |
 |------------------:|:----------------------------:|:---------------------:|
@@ -183,28 +180,22 @@ We use a strict clock mutation rate. We determine mtDNA mutations rates from stu
 | Rieux et al. 2014 |        2.143 x 10^-8^        | 1.58 - 2.706 x 10^-8^ |
 |         Used here |       2.4065 x 10^-8^        |          \-           |
 
-### Tree Prior
+#### MCMC Settings
 
-We use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci [@heled2008]. The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate.
-
-### MCMC Settings
-
-We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations. All necessary parameters have a ESS \> 200. We run the analyses twice to assess chain convergence. We take a burn-in of 20% <!--# check -->, which leaves us with a posterior sample of 8,000 trees for the M and N haplotypes, using the BEAST2 LogCombiner tool. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool (Heled and Bouckaert).
+We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations. All necessary parameters have a ESS \> 200. We run the analyses twice to assess chain convergence. We take a burn-in of 20% <!--# check -->, which leaves us with a posterior sample of 8,000 trees for the M and N haplotypes, using the BEAST2 LogCombiner tool. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool [@heled2013].
 
 # Inference Results
 
 ## Language Metadata
 
-As set out above, we have divided the phylogenetic data into major haplogroups, M & N. For each of these phylogeny we perform two analyses: the probability of sharing a trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, at the level of the language, and at the language clade level. This means for the two analyses, we have four results.
+As set out above, we have divided the genetic data into major haplogroups, M & N, for phylogenetic analysis. The aim of this project is to determine whether linguistic affiliation structures genetic diversity by calculating the probability of sharing a language trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, whether the language spoken by an individual is Trans-New Guinea of not, and then breaking Trans-New Guinea speakers down into language clades. This means for the two analyses, we have four results.
 
-1.  M Haplogroup - Language
+1.  M Haplogroup - Presence or absence of TNG
 2.  M Haplogroup - Language Clade
-3.  N Haplogroup - Language
+3.  N Haplogroup - Presence or absence of TNG
 4.  N Haplogroup - Language Clade
 
-The code below creates the necessary metadata files, connecting phylogeny taxa to their language and language clade.
-
-```{r m_haplogroup_data}
+```{r m_haplogroup_data, eval=FALSE, echo=FALSE}
 # Read in the M Haplotype tree
 mtree_file = "NCI/20240704_M_CBES_bModelTest/CBES_bModeltest-papua_m.noburnin.trees"
 m_tree = read.nexus(mtree_file)
@@ -220,11 +211,11 @@ metadata_m = metadata %>%
   filter(haplogroup_MN == "M" & PhyID %in% m_tree[[1]]$tip.label) %>%
   filter(!interview_language %in% c("", "Imani")) %>%
   # Remove missing langauge or responses that refer to unknown language.
-  select(ID, PhyID, interview_language, Branch_Family, TNG, latitude_hybrid, longitude_hybrid)
+  select(ID, PhyID, interview_language, TNG_Branch, TNG, latitude_hybrid, longitude_hybrid)
 
 metadata_m = rbind(metadata_m, metadata[metadata$PhyID == "HGDP00546_P1d(P1d1a)",
                                       c("ID", "PhyID", "interview_language", 
-                                        "Branch_Family", "TNG", "latitude_hybrid", 
+                                        "TNG_Branch", "TNG", "latitude_hybrid", 
                                         "longitude_hybrid")])
 
 # Prune the tree for all individuals for which we have language data for
@@ -245,27 +236,27 @@ tt = assert_that(nrow(metadata_m) > 1)
 write.csv(metadata_m, "NCI/20240618_R_M/language_metadata.csv")
 ```
 
-```{r n_haplogroup_data}
-# Read in the M Haplotype tree
-ntree_file = "NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest-papua_n.noburnin.trees"
+```{r n_haplogroup_data, eval = FALSE, echo=FALSE}
+# Read in the N Haplotype tree
+ntree_file = "NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj-papua_n.noburnin.trees"
 n_tree = read.nexus(ntree_file)
 
 # 20 individuals are N Haplotypes but do not have language data
-# metadata %>% 
-#   filter(haplogroup_MN == "N" & PhyID %in% n_tree[[1]]$tip.label) %>%
+# metadata %>%
+#   filter(haplogroup_MN == "N" & PhyID %in% n_tree$tip.label) %>%
 #   # Remove missing langauge or responses that refer to unknown language.
-#   filter(interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>% 
+#   filter(interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>%
 #   nrow()
 
 metadata_n = metadata %>% 
   filter(haplogroup_MN == "N" & PhyID %in% n_tree[[1]]$tip.label) %>%
   # Remove missing langauge or responses that refer to unknown language.
   filter(!interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>%
-  select(ID, PhyID, interview_language, Branch_Family, TNG, latitude_hybrid, longitude_hybrid)
+  select(ID, PhyID, interview_language, TNG_Branch, TNG, latitude_hybrid, longitude_hybrid)
 
 metadata_n = rbind(metadata_n, metadata[metadata$PhyID == "HGDP00545_Q1a(Q1a1)",
                                       c("ID", "PhyID", "interview_language", 
-                                        "Branch_Family", "TNG", "latitude_hybrid", 
+                                        "TNG_Branch", "TNG", "latitude_hybrid", 
                                         "longitude_hybrid")])
 
 # Prune the tree for all individuals for which we have language data for
@@ -278,11 +269,33 @@ n_tree = lapply(n_tree, function(t)
 
 cat("There are", length(keep_tips),"language matched taxa in the N Haplogroup phylogeny")
 
-ape::write.nexus(n_tree, file = paste0("NCI/20240709_R_N/",  basename(ntree_file)))
+# pick 1000 trees
+idx = sample(seq_along(n_tree), size = 1000, replace = TRUE)
+
+ape::write.nexus(n_tree[idx], file = paste0("NCI/20240709_R_N/",  basename(ntree_file)))
 
 tt = assert_that(nrow(metadata_n) > 1)
 
 write.csv(metadata_n, "NCI/20240709_R_N/language_metadata.csv")
+```
+
+```{r}
+tng_m = ifelse(metadata_m$TNG == 1, "TNG", "Not TNG")
+tng_n = ifelse(metadata_n$TNG == 1, "TNG", "Not TNG")
+tng = data.frame(Haplogroup = rep(c("M", "N"), times = c(length(tng_m), length(tng_n))),
+                 Count = c(tng_m, tng_n))
+
+kable(table(tng$Value, tng$Haplogroup))
+
+tng_m_clade = metadata_m %>% 
+  group_by(TNG_Branch) %>% count()
+tng_n_clade = metadata_n %>% group_by(TNG_Branch) %>% count()
+
+tng_clade = full_join(tng_m_clade, tng_n_clade, by = "TNG_Branch")
+
+kable(table(metadata$TNG_Branch), col.names = c("TNG Clade", "Count"))
+
+kable(tng_clade, col.names = c("TNG Clade", "M Count", "N Count"))
 ```
 
 ### Trait heritage
@@ -295,21 +308,17 @@ $$
 
 $c_t$ is the number of genetic clades at any point in history, for t generations. We assume 25 year generation times. $l_{i_g}$ and $l_{j_g}$ are the languages or language families spoken by individuals within genetic clade $g$. $1_{cos(l_{i_g}, l_{i_g}) > 0}$ is 1 if the ith and jth individual share a language, and zero otherwise. $n_g$ is the number of individuals in $g$.
 
-We extend this model to calculate the probability that two individuals share a particular language, rather than calculating the probability of sharing a language on average. This allows a more fine-grained view of the language-genetic connection. This approach has been compiled in the function `trait_heritage` within the package `traitheritage`, developed for this project. The trait heritage package can be found here: <https://github.com/SamPassmore/traitheritage>
+We extend this model to calculate the probability that two individuals share a particular trait, rather than calculating the probability of sharing a trait on average. This allows a more fine-grained view of the language-genetic connection. This approach has been compiled in the function `trait_heritage` within the package `traitheritage`, developed for this project. The trait heritage package can be found at: <https://github.com/SamPassmore/traitheritage>
 
 We calculate the trait heritage for a number of different traits.
 
 -   Whether a language is affiliated with the Trans-New Guinea family or not (`TNG`)
--   Language clade of the individual (`Branch_Family`)
+-   Language clade of the individual (`TNG_Branch`)
 -   Language of individual (`interview_language`)
 
 As with [@lansing2017], we compare the calculated probability with a permuted probability to determine whether languages are more likely to be shared by chance. We calculate XXX permutations per analysis.
 
-We apply the trait heritage function across a posterior of trees. Within each tree we calculate the probability from the data, and the XXX permutations. This analysis was performed with computational resources provided by NCI Australia, an NCRIS enabled capability supported by the Australian Government. The code below exemplifies how to run the analyses, but they were not run from this document.
-
-```{bash}
-Rscript analysis/posterior_trait_heritage.R -t <path-to-phylogeny-posterior> -v <name-of-variable-in-metdata>
-```
+We apply the trait heritage function across a posterior of trees. Within each tree we calculate the probability from the data, and the XXX permutations. This analysis was performed with computational resources provided by NCI Australia, an NCRIS enabled capability supported by the Australian Government.
 
 #### mtDNA N Haplotype
 
@@ -467,8 +476,8 @@ ggplot(data = distance_summary,
 
 #### mtDNA M Haplotype
 
-```{r}
-mcct_tree_mtdnaM = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.mcct.trees")
+```{r eval=FALSE,echo=FALSE}
+mcct_tree_mtdnaM = read.nexus("NCI/")
 
 language_probability = 
   read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_languagefamily.csv")
@@ -581,7 +590,7 @@ ggplot(data = distance_summary,
 
 #### mtDNA M: By trait results
 
-```{r}
+```{r, eval=FALSE, echo=FALSE}
 ## Prepare the tree
 mcct_tree_mtdnaM = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.mcct.trees")
 cleaned_tips = gsub("_.*","", mcct_tree_mtdnaM$tip.label)
@@ -646,7 +655,7 @@ ggsave(plot = pp, filename = "figures/mtDNA_M_CCP_wprob.png", width = 1920, unit
 
 #### mtDNA M: By Groups
 
-```{r}
+```{r eval = FALSE, echo = FALSE}
 probability_bygroup = language_probability %>% 
   mutate(clade_probability = numerator / denominator,
          generation_num = as.numeric(str_remove(generation, "g_"))) %>% 
@@ -726,7 +735,7 @@ ggsave(plot = pp, filename = "figures/mtDNA_M_CCP_stackedlinechart2.png", , widt
 
 ```
 
-```{r}
+```{r eval=FALSE, echo=FALSE}
 distance50_probability = read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_distance50.csv")
 distance35_probability = read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_distance35.csv")
 distance20_probability = read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_distance20.csv")
@@ -786,7 +795,7 @@ We further test the correlation between linguistic affiliation and genetic clade
 
 #### mtDNA N Haplotypes
 
-```{r}
+```{r eval = FALSE, echo=FALSE}
 if(!file.exists("results/mtDNA_N_stableclades.csv")){
   system("RScript analysis/stable_clades.R -t NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj-papua_n.noburnin.trees -v TNG")
 }
@@ -878,7 +887,7 @@ p1 + p2 + plot_layout(guides = 'collect', ncol = 2)
 
 The next section looks at average ages for language families and branches
 
-```{r}
+```{r, eval = FALSE, echo = FALSE}
 # New Guinea 
 tng = read.csv("data/language_families.csv")
 
@@ -892,7 +901,7 @@ tapply(stable_clades_summary$mean_Date, stable_clades_summary$state, summary)
 
 #### mtDNA M Haplotypes
 
-```{r}
+```{r eval = FALSE, echo=FALSE}
 if(!file.exists("results/mtDNA_M_stableclades.csv")){
     system("RScript analysis/stable_clades.R -t NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees -v Branch_Family")
 }

@@ -25,22 +25,6 @@ x = assert_that(length(unique(genetic_data$ID)) == nrow(genetic_data))
 # mutations = genetic_data$mutations_fromRCRS[1]
 
 #### Identify Individuals with dupliated mtDNA mutations ####
-dups = sum(duplicated(genetic_data$mutations_fromRCRS))
-
-genetic_data$mutations_sets = as.numeric(factor(genetic_data$mutations_fromRCRS))
-
-split_byset = split(genetic_data[,c("mutations_sets", "Branch_Family")], genetic_data$mutations_sets)
-dup_sets = sum(sapply(split_byset, nrow) > 1)
-
-cat("There are", dups, "individuals with duplicate mtDNA mutations that group in to", 
-    dup_sets, "distinct sets\n")
-
-mismatches = sapply(split_byset, function(x) length(unique(x$Branch_Family)))
-
-cat("Of the", dup_sets, "sets of duplicates", sum(mismatches > 1), "have mismatched language groupings\n")
-
-## Remove Duplicate mtDNA
-genetic_data = genetic_data[!duplicated(genetic_data$mutations_fromRCRS),]
 
 ## To make this faster and cleaner, the for loop within create_reference_genome could be vectorised 
 create_reference_genome = function(mutations, reference, sep = "\\, |\\s"){
