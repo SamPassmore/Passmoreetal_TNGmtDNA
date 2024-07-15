@@ -295,7 +295,9 @@ genetic_data = left_join(genetic_data, tng, by = "interview_language")
 ### These variables contain a mixutre of observed and inferred data. Details for their hybridisation are below
 
 # The location of the sample is taken from a mixture of sources. 
-# Some locations are taken as the location of 
+# Some locations are taken as the location of sampling
+# Some locations are taken as the home village of the sampler 
+# We prefereably use the location of sampling. 
 genetic_data$latitude_hybrid = coalesce(genetic_data$latitude_ofsampling, genetic_data$LATITUDE)
 genetic_data$longitude_hybrid = coalesce(genetic_data$longitude_ofsampling, genetic_data$LONGITUDE)
 

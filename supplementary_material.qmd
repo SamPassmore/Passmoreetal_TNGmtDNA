@@ -12,9 +12,9 @@ Here we load all necessary packages to build the supplementary material.
 
 ```{r message=FALSE}
 # Install BiocManager Packages
-# if (!require("BiocManager", quietly = TRUE))
-#   install.packages("BiocManager")
-# 
+if (!require("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
 # BiocManager::install("Biostrings")
 # BiocManager::install("treeio")
 # BiocManager::install("ggtree")
@@ -65,6 +65,10 @@ if(!file.exists("processed_data/genetic_samples.csv")){
 }
 
 metadata = read.csv("processed_data/genetic_samples.csv")
+# Make taxa labels
+metadata$PhyID = paste(metadata$ID, metadata$haplogroup, sep = "_")
+# strip whitespace to match taxa labels
+metadata$PhyID = gsub("[[:space:]]", "", metadata$PhyID)
 
 ## Counts of 
 # Gender
@@ -132,11 +136,7 @@ ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 ## Genetic Data
 
-This project uses a set of newly collected genetic samples from Southern New Guinea, collected in 2019 as part of the Papuan Past project, and leverages existing samples drawn from XXX, also collected from the Papuan Past Project.
-
-In total, we analyse a sample of 903 mitogenomes.
-
-## mtDNA
+This project leverages existing samples drawn from XXX papers. In total, we analyse a sample of 903 mitogenomes.
 
 mtDNA samples were sequenced using \[what technology?\] <!--# How was this done? Probably ask Franois-Xavier -->. Sequences are reconstructed tfrom the Revised Cambridge Reference Sequence (rCRS). See script `processing/create_reference_genomes.R` for processing details.
 
@@ -151,27 +151,27 @@ We split mtDNA samples into M and N haplotype groups for computational efficienc
 
 We use BEAST v2.7.4 to infer the genealogical relationships between our set of XXX mitogenomes. Here we detail the decisions behind the parameters used for our phylogenetic models, which can also be found in the .xmls file associated with this project.
 
-### Phylogenetic model testing
-
-### 
-
-1.  We test the following Tree Priors, with a GTR-4 model
-    1.  **Coalescent Constant Population - Will be ok with a longer run (mean post = -39250.368)**
-    2.  Coalescent Exponental Population - Looks a bit wobbly (mean post = -39219.659)
-    3.  Coalescent Bayesian Skyline - Not great
-    4.  Coalescent Bayesian Extended Skyline - Not great (post mean = -43148.448)
-    5.  Birth-Death - Will be fine with a marignally longer run (mean post = -37512.024)
-    6.  Yule Prior - Will be fine with a marignally longer run (mean post = -37508.514)
+## Phylogenetic model testing
 
 ### Substitution and Site model
 
-We use the BEAST package bModeltest to assess the most appropriate Substitution model, with Coalescent Bayesian Population model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model. For the M haplogroup data, the TIM model was the most commonly implemented.
+We use the BEAST package bModeltest to assess the most appropriate Substitution model, with Coalescent Bayesian Population model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model.
 
-1.  . A Gamma prior over the rates allows for rate heterogeneity across sites, with a possibility of four rate categories. The shape parameter is estimated, with a starting value of 1 (default).
+For the M haplogroup data, the TIM model (Transition model, AC=GT, AT=CG and unequal base freq: 123341) was the most commonly implemented (45%). Gamma and Invariant site parameters were always present, with the Gamma shape estimated to 1.016, and 87.9% of all sites were invariant.
 
-Approximately 70% of sites are invariant, so we also implement an invariant sites model, which is estimated from the data. We use empirical base frequencies for each base in this model, and all rates are estimated, except for the CT rate. At least one of the substitutions rates needs to be fixed, because estimating them all leads to model unidentifiability. We fix the transition of CT to 1 in this model, since BEAST scales rates so that the average is 1. Fixing a transition rate is more stable than fixing a transversion rate.
+-   MCMC convergence is not great for M
 
-This model can be described as: **GTR+G4+I**
+-   It may be because I put two identical monophyletic constraints in. I have run again (02/07/2024) to see if this fixes the wobbly MCMC Chain
+
+For the N haplogroup data, the TPM2 (AC=AT, AG=CT, CG=GT and equal base freq.: 121323) model was the most commonly implemented (24.4%). This was closely followed by the K80 or K2P model (121121, 18.05%). Gamma and Invariant site parameters were always present, with the Gamma shape estimated to 0.964, and 91.1% of all sites were invariant.
+
+-   After changing the operator values to try and get better runs the N Haplogroup phylogeny has not been covnerging
+
+-   I reverted the operator values to their original value and have re-run sampling at half the rate to see if that improves convergence.
+
+-   20240704: I have added a tree height prior: Normal distribution at 65k years with SD of 7500 years. 65k because that is the oldert archealogical data in Sahul. 7.5k SD means gives a 1 s.d. values of 80k years, which is a reasonable upper limit in terms of genetic history.
+
+In each of the M and N Haplogroup trees, we have one outlier from the opposing group, which is labelled as a monphyletic outlier in the analysis.
 
 #### Clock model / Mutation Rates
 
@@ -185,19 +185,15 @@ We use a strict clock mutation rate. We determine mtDNA mutations rates from stu
 
 ### Tree Prior
 
-We use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci (Heled & Drummond, 2008). The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate.
-
-We compare the EBSP model with the Coalescent Bayesian Skyline model to determine if the added complexity of the skyline model is justified.
-
-\[Table of model comparisons\]
+We use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci [@heled2008]. The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate.
 
 ### MCMC Settings
 
-We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations. All necessary parameters have a ESS \> 200. We run the analyses twice to assess chain convergence. We take a burn-in of 20% <!--# check -->, which leaves us with a posterior sample of 8,000 trees for the M and N haplotypes, using the BEAST2 LogCombiner tool. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool.
+We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations. All necessary parameters have a ESS \> 200. We run the analyses twice to assess chain convergence. We take a burn-in of 20% <!--# check -->, which leaves us with a posterior sample of 8,000 trees for the M and N haplotypes, using the BEAST2 LogCombiner tool. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool (Heled and Bouckaert).
 
 # Inference Results
 
-## Language Metadata 
+## Language Metadata
 
 As set out above, we have divided the phylogenetic data into major haplogroups, M & N. For each of these phylogeny we perform two analyses: the probability of sharing a trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, at the level of the language, and at the language clade level. This means for the two analyses, we have four results.
 
@@ -210,46 +206,83 @@ The code below creates the necessary metadata files, connecting phylogeny taxa t
 
 ```{r m_haplogroup_data}
 # Read in the M Haplotype tree
-m_tree = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.trees")
+mtree_file = "NCI/20240704_M_CBES_bModelTest/CBES_bModeltest-papua_m.noburnin.trees"
+m_tree = read.nexus(mtree_file)
+
+# 31 individuals are N Haplotypes but do not have language data
+# metadata %>%
+#   filter(haplogroup_MN == "M" & PhyID %in% m_tree[[1]]$tip.label) %>%
+#   # Remove missing langauge or responses that refer to unknown language.
+#   filter(interview_language %in% c("", "Imani")) %>%
+#   nrow()
+
+metadata_m = metadata %>% 
+  filter(haplogroup_MN == "M" & PhyID %in% m_tree[[1]]$tip.label) %>%
+  filter(!interview_language %in% c("", "Imani")) %>%
+  # Remove missing langauge or responses that refer to unknown language.
+  select(ID, PhyID, interview_language, Branch_Family, TNG, latitude_hybrid, longitude_hybrid)
+
+metadata_m = rbind(metadata_m, metadata[metadata$PhyID == "HGDP00546_P1d(P1d1a)",
+                                      c("ID", "PhyID", "interview_language", 
+                                        "Branch_Family", "TNG", "latitude_hybrid", 
+                                        "longitude_hybrid")])
 
 # Prune the tree for all individuals for which we have language data for
-keep_tips = c(metadata$ID[metadata$haplogroup_MN == "M" & 
-                            metadata$ID %in% m_tree[[1]]$tip.label],
-              "HGDP00546") # Keep the outgroup label
+keep_tips = metadata_m$PhyID
+
+cat("There are", length(m_tree[[1]]$tip.label),"taxa in the N Haplogroup phylogeny")
 
 m_tree = lapply(m_tree, function(t)
   keep.tip(t, keep_tips))
 
-ape::write.nexus(m_tree, file = "NCI/20240618_R_M/ [tree name]")
+cat("There are", length(keep_tips),"language matched taxa in the M Haplogroup phylogeny")
 
-# Save language metadata file
-metadata_m = metadata %>% 
-  filter(ID %in% keep_tips) %>% 
-  select(ID, interview_language, Branch_Family)
+ape::write.nexus(m_tree, 
+                 file = paste0("NCI/20240618_R_M/",  basename(mtree_file)))
+
+tt = assert_that(nrow(metadata_m) > 1)
 
 write.csv(metadata_m, "NCI/20240618_R_M/language_metadata.csv")
 ```
 
 ```{r n_haplogroup_data}
 # Read in the M Haplotype tree
-n_tree = read.nexus("NCI/ N Tree ")
+ntree_file = "NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest-papua_n.noburnin.trees"
+n_tree = read.nexus(ntree_file)
+
+# 20 individuals are N Haplotypes but do not have language data
+# metadata %>% 
+#   filter(haplogroup_MN == "N" & PhyID %in% n_tree[[1]]$tip.label) %>%
+#   # Remove missing langauge or responses that refer to unknown language.
+#   filter(interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>% 
+#   nrow()
+
+metadata_n = metadata %>% 
+  filter(haplogroup_MN == "N" & PhyID %in% n_tree[[1]]$tip.label) %>%
+  # Remove missing langauge or responses that refer to unknown language.
+  filter(!interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>%
+  select(ID, PhyID, interview_language, Branch_Family, TNG, latitude_hybrid, longitude_hybrid)
+
+metadata_n = rbind(metadata_n, metadata[metadata$PhyID == "HGDP00545_Q1a(Q1a1)",
+                                      c("ID", "PhyID", "interview_language", 
+                                        "Branch_Family", "TNG", "latitude_hybrid", 
+                                        "longitude_hybrid")])
 
 # Prune the tree for all individuals for which we have language data for
-keep_tips = c(metadata$ID[metadata$haplogroup_MN == "N" & 
-                            metadata$ID %in% m_tree[[1]]$tip.label],
-              "HGDP00545") # Keep the outgroup label
+keep_tips = metadata_n$PhyID
+
+cat("There are", length(n_tree[[1]]$tip.label),"taxa in the N Haplogroup phylogeny")
 
 n_tree = lapply(n_tree, function(t)
   keep.tip(t, keep_tips))
 
-ape::write.nexus(m_tree, file = "NCI/20240618_R_N/language_metadata.csv")
+cat("There are", length(keep_tips),"language matched taxa in the N Haplogroup phylogeny")
 
-# Save language metadata file
-metadata_n = metadata %>% 
-  filter(ID %in% keep_tips) %>% 
-  select(ID, interview_language, Branch_Family)
+ape::write.nexus(n_tree, file = paste0("NCI/20240709_R_N/",  basename(ntree_file)))
 
-write.csv(metadata_n, "NCI/20240618_R_M/language_metadata.csv")
+tt = assert_that(nrow(metadata_n) > 1)
+
+write.csv(metadata_n, "NCI/20240709_R_N/language_metadata.csv")
 ```
 
 ### Trait heritage
@@ -266,15 +299,9 @@ We extend this model to calculate the probability that two individuals share a p
 
 We calculate the trait heritage for a number of different traits.
 
--   Language of individual
-
--   Language clade of the individual
-
-We extend this calculation to calculate the probability of a trait given a further conditions
-
--   The shared language is a Trans-New Guinea language
-
--   The shared language is not a Trans-New Guinea language
+-   Whether a language is affiliated with the Trans-New Guinea family or not (`TNG`)
+-   Language clade of the individual (`Branch_Family`)
+-   Language of individual (`interview_language`)
 
 As with [@lansing2017], we compare the calculated probability with a permuted probability to determine whether languages are more likely to be shared by chance. We calculate XXX permutations per analysis.
 
@@ -286,17 +313,32 @@ Rscript analysis/posterior_trait_heritage.R -t <path-to-phylogeny-posterior> -v 
 
 #### mtDNA N Haplotype
 
+##### Trans-New Guinea structure
+
 ```{r echo=FALSE}
-mcct_tree_mtdnaN = read.nexus("NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.mcct.trees")
+mcct_tree_mtdnaN = read.nexus("NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj-papua_n.mcct.trees") 
+
+mcct_depth = mean(adephylo::distRoot(mcct_tree_mtdnaN))
 
 language_probability = 
-  read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_languagefamily.csv")
+  read.csv("NCI/20240709_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_languagefamily.csv")
+
+# Because we calculate the probability per group, we need to make this generational average 
+# for trait probabaility data. But for Permutations, the average is all that is calculated
+# because of the computational memory issues. 
+language_probability = data.table(language_probability)
+language_probability = language_probability[, list(numerator_sum = sum(numerator),
+                           denominator_sum = sum(denominator)), 
+                           by = list(state, posterior, generation)]
+language_probability[, clade_probability := numerator_sum / denominator_sum]
+language_probability = language_probability[state == 1,]
 
 permuted_probability = 
-  read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_pruned_permuted_languagefamily.csv")
+  read.csv("NCI/20240709_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_permuted_languagefamily.csv")
 
 summarizer = function(posterior){
   posterior$generation_time = as.numeric(gsub("g_", replacement = "", posterior$generation))
+  # posterior$clade_probability = posterior$numerator / posterior$numerator
   posterior %>%
   filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
   group_by(generation_time) %>%
@@ -308,19 +350,23 @@ summarizer = function(posterior){
 
 # Summarise the posterior
 posterior_summary = summarizer(language_probability)
-permuted_summary = summarizer(permuted_probability )
+# remove results that are older than the MCCT tree
+posterior_summary = posterior_summary[posterior_summary$generation_time < mcct_depth,]
 
-cleaned_tips = gsub("_.*","", mcct_tree_mtdnaN$tip.label)
-mcct_tree_mtdnaN$tip.label = cleaned_tips
+permuted_summary = summarizer(permuted_probability)
+permuted_summary = permuted_summary[permuted_summary$generation_time < mcct_depth,]
 
-metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaN$tip.label, ]
-mcct_tree_mtdnaN = keep.tip(mcct_tree_mtdnaN, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
+# cleaned_tips = gsub("_.*","", mcct_tree_mtdnaN$tip.label)
+# mcct_tree_mtdnaN$tip.label = cleaned_tips
 
-tree_data = full_join(mcct_tree_mtdnaN, metadata_ss, by = c("label" = "ID"))
+metadata_ss = metadata[metadata$PhyID %in% mcct_tree_mtdnaN$tip.label, ]
+mcct_tree_mtdnaN = keep.tip(mcct_tree_mtdnaN, metadata_ss$PhyID[!is.na(metadata_ss$Branch_Family)])
+
+tree_data = full_join(mcct_tree_mtdnaN, metadata_ss, by = c(label = "PhyID"))
 
 #### plot 
 p_tree = ggtree(tree_data) + 
-  geom_tippoint(aes(col = Branch_Family), shape = "\u2588", size = 1.5) +
+  geom_tippoint(aes(col = TNG), shape = "\u2588", size = 1.0) +
   scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
                      labels = c("10k", "20k", "30k", "40k")) +
   layout_dendrogram() + 
@@ -334,14 +380,14 @@ x_range = layer_scales(p_tree)$x$range$range
   
 p_prob = ggplot(data = posterior_summary,
                 aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5) + 
-  geom_line(col = "blue") + 
-  geom_ribbon(data = permuted_summary, 
+  geom_ribbon(fill = "lightblue", alpha = 0.5) +
+  geom_line(col = "blue") +
+  geom_ribbon(data = permuted_summary,
               aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob),
-              fill = "lightgreen", alpha = 0.5) + 
-  geom_line(data = permuted_summary, 
+              fill = "lightgreen", alpha = 0.5) +
+  geom_line(data = permuted_summary,
               aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") + 
+            col = "forestgreen") +
   ylim(c(0, 1)) +
   xlim(x_range) + ## max tree height (or max p_tree?)
   coord_flip() +
@@ -362,22 +408,27 @@ p_tree + p_prob +
 These next graphs show the probability of shared language family against geographic proximity. we test geographic proximity at three distances: are two individuals within 50km of each other, 100kms, or 200kms.
 
 ```{r}
-distance50_probability = read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_distance50.csv")
-distance100_probability = read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_distance100.csv")
-distance200_probability = read.csv("results/Branch_Family_mtDNA_N-papua_n_daru_distance200.csv")
+distance50_probability = 
+  read.csv("NCI/20240709_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance50.csv")
+distance35_probability = 
+  read.csv("NCI/20240709_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance35.csv")
+distance20_probability = 
+  read.csv("NCI/20240709_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance20.csv")
 
-distance_summary = lapply(list(short = distance50_probability,
-                        medium = distance100_probability,
-                        long = distance200_probability), 
+distance_summary = lapply(list(long = distance50_probability,
+                        medium = distance35_probability,
+                        short = distance20_probability), 
                         summarizer)
 
 distance_summary = bind_rows(distance_summary, .id = "distance")
 distance_summary$distance = factor(distance_summary$distance, 
                                    levels = c("short", "medium", "long"))
 
-facet_names = c(`short` = "w/n 50km",
-                `medium` = "w/n 100km",
-                `long` = "w/n 200km")
+distance_summary = distance_summary[distance_summary$generation_time < mcct_depth,]
+
+facet_names = c(`short` = "w/n 20km",
+                `medium` = "w/n 35km",
+                `long` = "w/n 50km")
 
 ggplot(data = distance_summary,
        aes(
@@ -405,8 +456,8 @@ ggplot(data = distance_summary,
                 aes(x = generation_time,
                     y = mean.prob),
                 col = "blue") +
-  scale_x_reverse(breaks = c(0, 10000, 20000, 30000, 40000, 50000),
-                  labels = c("0", "10k", "20k", "30k", "40k", "50k")) + 
+  scale_x_reverse(breaks = c(0, 10000, 20000, 30000, 40000, 50000, 60000, 70000),
+                  labels = c("0", "10k", "20k", "30k", "40k", "50k", "60k", "70k")) + 
   xlab("Time (years)") + 
   ylab("Probability") + 
   theme_classic()
@@ -737,7 +788,7 @@ We further test the correlation between linguistic affiliation and genetic clade
 
 ```{r}
 if(!file.exists("results/mtDNA_N_stableclades.csv")){
-  system("RScript analysis/stable_clades.R -t NCI/mtDNA_N/mtDNA_N-papua_n_daru_pruned.trees -v Branch_Family")
+  system("RScript analysis/stable_clades.R -t NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj-papua_n.noburnin.trees -v TNG")
 }
 
 ## Metadata 
@@ -884,60 +935,100 @@ We do not only want to understand the probability of particular histories, but a
 This approach extends some assumptions of the phylogenetic model. First, that all partitions are binary.
 
 ```{r}
-library(data.table)
-
-mcct_tree_mtdnaM = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.mcct.trees")
-
-metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaM$tip.label, ]
-trait = metadata_ss$Branch_Family
+metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaN, ]
+trait = metadata_ss$TNG
 names(trait) = metadata_ss$ID
 
-w_b = traitheritage::within_between(tree = mcct_tree_mtdnaM, generation_time = 25, trait = trait)
+# w_b = traitheritage::within_between(tree = mcct_tree_mtdnaM, generation_time = 25, trait = trait)
+# 
+# saveRDS(w_b, "results/Branch_Family_mtDNAM_CCP_withinbetween.RDS")
+# w_b = readRDS("results/Branch_Family_mtDNAM_CCP_withinbetween.RDS")
 
-saveRDS(w_b, "results/Branch_Family_mtDNAM_CCP_withinbetween.RDS")
-w_b = readRDS("results/Branch_Family_mtDNAM_CCP_withinbetween.RDS")
-
-v_within = w_b$v_within
+w_b = 
+  readRDS("NCI/20240709_R_N/results/TNG_20240617_CBES_bModelTest-papua_n.noburnin_withinbetween.RDS")
+v_within = lapply(w_b, '[[', "v_within")
+v_within = rbindlist(v_within, idcol = "tree")
 v_within[,  generation_num := as.numeric(str_remove(generation, "g_")),]
+v_within = v_within[generation_num < mcct_depth,]
 setkey(v_within, trait)
 
-kainantu_chumbu_w = v_within[J(c("Chimbu-Wahgi", "Kainantu-Goroka"))]
+v_within_av = v_within[, 
+                .(v_within_av = mean(v_within)), 
+                       by = list(trait, generation_num)]
 
-v_between = w_b$v_between
+v_within_er = v_within[,
+                       .(CI_Low = unlist(bayestestR::ci(v_within)["CI_low"]),
+                         CI_High = unlist(bayestestR::ci(v_within)["CI_high"])),
+                       by = list(trait, generation_num)]
+
+v_within_av = bind_cols(v_within_av, v_within_er[,c("CI_Low", "CI_High")])
+
+# kainantu_chumbu_w = v_within[J(c("Chimbu-Wahgi", "Kainantu-Goroka"))]
+
+v_between = lapply(w_b, '[[', "v_between")
+v_between = rbindlist(v_between, idcol = "tree")
 v_between[,  generation_num := as.numeric(str_remove(generation, "g_")),]
+v_between = v_between[generation_num < mcct_depth,]
 setkey(v_between, trait_pairs)
 
-kainantu_chumbu_b = v_between[J(c("Chimbu-WahgiKainantu-Goroka"))]
+v_between_av = v_between[,
+                         .(v_between_av = mean(v_between)), 
+                         by = list(trait_pairs, generation_num)]
 
+v_between_er = v_between[,
+                       .(CI_Low = unlist(bayestestR::ci(v_between)["CI_low"]),
+                         CI_High = unlist(bayestestR::ci(v_between)["CI_high"])),
+                       by = list(trait_pairs, generation_num)]
+
+v_between_av = bind_cols(v_between_av, v_between_er[,c("CI_Low", "CI_High")])
+
+# kainantu_chumbu_b = v_between[J(c("Chimbu-WahgiKainantu-Goroka"))]
 
 ggplot() + 
-  geom_line(data = kainantu_chumbu_w, 
-            aes(x = generation_num, y = v_within, col = trait)) + 
-  geom_line(data = kainantu_chumbu_b,
-            aes(x = generation_num, y = v_between)) + 
-  ylab("Probability") + 
-  xlab("Time") + 
+  geom_line(data = v_within_av, aes(x = generation_num, y = v_within_av, col = trait)) + 
+  geom_ribbon(data = v_within_av,
+              aes(ymin = CI_Low, ymax = CI_High, x = generation_num, y = v_within_av, fill = trait),
+              alpha = 0.5) +
+  geom_line(data = v_between_av, aes(x = generation_num, y = v_between_av), col = "forestgreen") + 
+  geom_ribbon(data = v_between_av,
+              aes(ymin = CI_Low, ymax = CI_High, x = generation_num, y = v_between_av),
+              fill = "lightgreen", alpha = 0.5) 
+
+ggplot() + 
+  geom_line(data = v_within_av, aes(x = generation_num, y = v_within_av, col = trait)) + 
+  geom_ribbon(data = v_within_av,
+              aes(ymin = CI_Low, ymax = CI_High, x = generation_num, y = v_within_av, fill = trait),
+              alpha = 0.5) + 
   theme_classic()
 
+# ggplot() + 
+#   geom_line(data = kainantu_chumbu_w, 
+#             aes(x = generation_num, y = v_within, col = trait)) + 
+#   geom_line(data = kainantu_chumbu_b,
+#             aes(x = generation_num, y = v_between)) + 
+#   ylab("Probability") + 
+#   xlab("Time") + 
+#   theme_classic()
 
-ggplot(data = v_within, aes(x = generation_num, y = v_within, col = trait)) + 
-  geom_line() + 
-  facet_wrap(~trait) + 
-  theme(legend.position = "none")
-  
-branch = "Chimbu-Wahgi"
 
-v_between_particular = v_between[,.SD[stringr::str_detect(trait_pairs, branch)],]
-
-ggplot(data = v_between_particular, 
-       aes(x = generation_num, y = v_between, col = trait_pairs)) + 
-  geom_line() + 
-  facet_wrap(~trait_pairs) + 
-  geom_line(data = v_within[J(branch)], 
-             aes(x = generation_num, y = v_within, col = trait),
-            col = "grey40", lwd = 0.5) + 
-  theme_light() +
-  theme(legend.position = "none") 
-
+# ggplot(data = v_within_av, aes(x = generation_num, y = v_within_av, col = trait)) + 
+#   geom_line() + 
+#   facet_wrap(~trait) + 
+#   theme(legend.position = "none")
+#   
+# branch = "Chimbu-Wahgi"
+# 
+# v_between_particular = v_between[,.SD[stringr::str_detect(trait_pairs, branch)],]
+# 
+# ggplot(data = v_between_particular, 
+#        aes(x = generation_num, y = v_between, col = trait_pairs)) + 
+#   geom_line() + 
+#   facet_wrap(~trait_pairs) + 
+#   geom_line(data = v_within[J(branch)], 
+#              aes(x = generation_num, y = v_within, col = trait),
+#             col = "grey40", lwd = 0.5) + 
+#   theme_light() +
+#   theme(legend.position = "none") 
+# 
 
 ```
