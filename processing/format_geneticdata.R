@@ -167,75 +167,6 @@ genetic_data = bind_rows(genetic_sheet1, genetic_sheet2, genetic_sheet3)
 # missing language data should be an NA
 genetic_data$interview_language[genetic_data$interview_language == ""] = NA
 
-#### Picking the right language ####
-## There are some genetic duplicates, of the duplicate we need to choose the individual with the most reliable metadata
-## That is, we should aim to not use the inferred language data
-dups = sum(duplicated(genetic_data$mutations_fromRCRS))
-
-genetic_data$mutations_sets = as.numeric(factor(genetic_data$mutations_fromRCRS))
-
-split_byset = split(genetic_data[,c("ID", "mutations_sets", "interview_language", "latitude_hybrid", "longitude_hybrid")], genetic_data$mutations_sets)
-idx = sapply(split_byset, nrow) > 1
-duplicates = do.call(rbind, split_byset[idx])
-
-write.csv(duplicates, "processed_data/genetic_duplicates.csv")
-
-dup_sets = sum(sapply(split_byset, nrow) > 1)
-
-cat("There are", dups, "individuals with duplicate mtDNA mutations that group in to", 
-    dup_sets, "distinct sets\n")
-
-mismatches = sapply(split_byset, function(x) length(unique(x$interview_language)))
-
-cat("Of the", dup_sets, "sets of duplicates", sum(mismatches > 1), "have mismatched language groupings\n")
-
-for(i in unique(genetic_data$mutations_sets)){
-  idx = which(genetic_data$mutations_sets == i)
-  set = genetic_data[idx,]
-  
-  # If no languages have linguistic data, then use the inferred data
-  if(all(is.na(set$interview_language))){
-    set$interview_language = set$language_fromcoords
-    # If the inferred languages are not all the same, then pick one at random
-    if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
-      drop = sample(idx, length(idx) - 1, replace = FALSE)
-      genetic_data = genetic_data[-drop,]
-    }
-    next
-  }
-
-  # If all duplicate genomes speak the same langauge, do nothing
-  if(length(unique(set$interview_language)) == 1){
-    next
-  }
-  
-  # If all languages are different, pick one at random
-  if(all(!is.na(set$interview_language)) & !all(set$interview_language[1] == set$interview_language)){
-    drop = sample(idx, length(idx) - 1, replace = FALSE)
-    genetic_data = genetic_data[-drop,]
-    print("These people have identical genetic records but different languages")
-    print(set[,c("ID", "interview_language")])
-    next
-  }
-  
-  # If there are duplicate genomes but only one unique language, drop the others
-  if(any(!is.na(set$interview_language))){
-    drop = idx[is.na(set$interview_language)]
-    genetic_data = genetic_data[-drop,]
-    next
-  }
-}
-
-# If there is no language recorded, use the inferred language data 
-cat("We infer the language for", 
-    sum(is.na(genetic_data$interview_language) & !is.na(genetic_data$language_fromcoords)),
-    "individuals, from a total of",
-    nrow(genetic_data), "individuals")
-
-# genetic_sheet1$interview_language[is.na(genetic_sheet1$interview_language)] = 
-#   genetic_sheet1$language_fromcoords[is.na(genetic_sheet1$interview_language)]
-
-
 # Separately I collected the GPS coordinates of all Villages listed in the dataset. I merge that data in here
 village_coords = read.csv('data/metadata_villagedata.csv')
 village_coords = village_coords[,c("ID", "village", "LATITUDE", "LONGITUDE")]
@@ -372,7 +303,79 @@ genetic_data = left_join(genetic_data, tng, by = "interview_language")
 genetic_data$latitude_hybrid = coalesce(genetic_data$latitude_ofsampling, genetic_data$LATITUDE)
 genetic_data$longitude_hybrid = coalesce(genetic_data$longitude_ofsampling, genetic_data$LONGITUDE)
 
-##### Write the raw data ####
+#### Picking the right language ####
+## There are some genetic duplicates, of the duplicate we need to choose the individual with the most reliable metadata
+## That is, we should aim to not use the inferred language data
+dups = sum(duplicated(genetic_data$mutations_fromRCRS))
+
+genetic_data$mutations_sets = as.numeric(factor(genetic_data$mutations_fromRCRS))
+
+split_byset = split(genetic_data[,c("ID", "mutations_sets", "interview_language", "latitude_hybrid", "longitude_hybrid")], genetic_data$mutations_sets)
+idx = sapply(split_byset, nrow) > 1
+duplicates = do.call(rbind, split_byset[idx])
+
+write.csv(duplicates, "processed_data/genetic_duplicates.csv")
+
+dup_sets = sum(sapply(split_byset, nrow) > 1)
+
+cat("There are", dups, "individuals with duplicate mtDNA mutations that group in to", 
+    dup_sets, "distinct sets\n")
+
+mismatches = sapply(split_byset, function(x) length(unique(x$interview_language)))
+
+cat("Of the", dup_sets, "sets of duplicates", sum(mismatches > 1), "have mismatched language groupings\n")
+record = list()
+for(i in unique(genetic_data$mutations_sets)){
+  idx = which(genetic_data$mutations_sets == i)
+  set = genetic_data[idx,]
+  
+  # If no languages have linguistic data, then use the inferred data
+  if(all(is.na(set$interview_language))){
+    set$interview_language = set$language_fromcoords
+    # If the inferred languages are not all the same, then pick one at random
+    if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
+      drop = sample(idx, length(idx) - 1, replace = FALSE)
+      genetic_data = genetic_data[-drop,]
+    }
+    next
+  }
+  
+  # If all duplicate genomes speak the same langauge, do nothing
+  if(length(unique(set$interview_language)) == 1){
+    next
+  }
+  
+  # If all languages are different, pick one at random
+  if(all(!is.na(set$interview_language)) & !all(set$interview_language[1] == set$interview_language)){
+    drop = sample(idx, length(idx) - 1, replace = FALSE)
+    genetic_data = genetic_data[-drop,]
+    print("These people have identical genetic records but different languages")
+    record = append(record, list(set[,c("ID", "interview_language")]))
+    next
+  }
+  
+  # If there are duplicate genomes but only one unique language, drop the others
+  if(any(!is.na(set$interview_language))){
+    drop = idx[is.na(set$interview_language)]
+    genetic_data = genetic_data[-drop,]
+    next
+  }
+}
+
+# If there is no language recorded, use the inferred language data 
+cat("We infer the language for", 
+    sum(is.na(genetic_data$interview_language) & !is.na(genetic_data$language_fromcoords)),
+    "individuals, from a total of",
+    nrow(genetic_data), "individuals")
+
+split_byset = split(genetic_data[,c("ID", "mutations_sets", "interview_language", "language_fromcoords", "latitude_hybrid", "longitude_hybrid")], genetic_data$mutations_sets)
+idx = sapply(split_byset, nrow) > 1
+
+genetic_sheet1$interview_language[is.na(genetic_sheet1$interview_language)] =
+  genetic_sheet1$language_fromcoords[is.na(genetic_sheet1$interview_language)]
+
+
+#### Write the raw data ####
 # Comma seperated
 write.csv(genetic_data, 'processed_data/genetic_samples.csv', row.names = FALSE, na = "")
 
