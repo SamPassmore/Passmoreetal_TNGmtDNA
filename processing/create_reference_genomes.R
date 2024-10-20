@@ -148,3 +148,6 @@ Biostrings::writeXStringSet(fasta_set_m, filepath = 'processed_data/papua_m.fast
 Biostrings::writeXStringSet(fasta_set_n, filepath = 'processed_data/papua_n.fasta')
 # ape::write.nexus.data(fasta_set_n, file = "processed_data/papua_n.nex")
 
+# All data
+Biostrings::writeXStringSet(fasta_set, filepath = 'processed_data/papua_completeset.fasta')
+

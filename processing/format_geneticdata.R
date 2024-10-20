@@ -17,8 +17,7 @@ genetic_sheet1 = genetic_sheet1[-c(696:697),]
 
 genetic_sheet1 = genetic_sheet1 %>% 
   dplyr::select(NCBI_EHA_ID = "ID - NCBI/EGA" ,
-                reference = "Reference",
-                reference_sequence = "Reference Sequence ID",
+                reference = "Reference Sequence ID",
                 gender = "Gender",
                 country = "Country",
                 province = "Ind Province",
@@ -43,7 +42,7 @@ genetic_sheet1 = genetic_sheet1[rowSums(is.na(genetic_sheet1)) != ncol(genetic_s
 ## Correct IDs
 ## Not all rows have IDs in this sheet
 ## Create unique IDs from the given ID and reference sequence ID
-genetic_sheet1$ID = genetic_sheet1$reference_sequence
+genetic_sheet1$ID = genetic_sheet1$reference
 idx = is.na(genetic_sheet1$ID)
 genetic_sheet1$ID[idx] = genetic_sheet1$NCBI_EHA_ID[idx]
 genetic_sheet1$ID[genetic_sheet1$ID == "EGAS00001001247"] = genetic_sheet1$NCBI_EHA_ID[genetic_sheet1$ID == "EGAS00001001247"]
@@ -235,6 +234,8 @@ genetic_data$interview_language[genetic_data$interview_language == ""] = "None g
 # Interviewees gave their language as Angan, which is a language family. The closest Angan language to where the interviews
 # were conducted was Baruya. These individuals are assigned to Baruya
 genetic_data$interview_language[genetic_data$interview_language == "Angan"] = "Baruya [byr]"
+## According to Gajdusek and Alpers (1972) Imani is a dialect of Baruya consisting of around 300 speakers (1969). We relabel them as Baruya
+genetic_data$interview_language[genetic_data$interview_language == "Imani"] = "Baruya [byr]"
 # Nasioi is a family and Simeku is a language in that family. These individuals are assigned to Simeku
 genetic_data$interview_language[genetic_data$interview_language == "Nasioi, Simeku"] = "Simeku [smz]"
 # Interviewees gave their language as Baining, which is a language family. The closest Baining language to where the interviews
@@ -265,10 +266,8 @@ genetic_data$interview_language[genetic_data$interview_language == "Bola [bnp], 
 # These appear to be the same languages, so they are changed to be the same
 genetic_data$interview_language[genetic_data$interview_language == "Gimi (Eastern Highlands) [gim]"] = "Gimi [gim]"
 
-## Two langauges cannot be matched to a recorded language variety
+## One langauges cannot be matched to a recorded language variety
 # Eyagu (1 person)
-# Imani (17 people)
-## Imani appears to be a valley / place where people have come from. It is unclear what language they speak. 
 
 ## One language is listed as TO EXCLUDE. We exclude it here
 genetic_data = genetic_data[!genetic_data$interview_language == "TO EXCLUDE",]
@@ -286,8 +285,8 @@ genetic_data$gender = ifelse(genetic_data$gender == "m", "M",
 
 # Is the number of unique IDs equal to the number of rows? (i.e. are there no duplicates)
 n_distinct(genetic_data$ID) == nrow(genetic_data)
+n_distinct(genetic_data$mutations_fromRCRS) == nrow(genetic_data)
 
-## Add TNG Language branches or langauge family  ####
 ## I have created a manual pairing of languages to language families / branches. 
 tng = read.csv('data/language_families.csv')
 
@@ -329,24 +328,28 @@ for(i in unique(genetic_data$mutations_sets)){
   idx = which(genetic_data$mutations_sets == i)
   set = genetic_data[idx,]
   
-  # If no languages have linguistic data, then use the inferred data
+  # If no languages have linguistic data, then drop
   if(all(is.na(set$interview_language))){
-    set$interview_language = set$language_fromcoords
-    # If the inferred languages are not all the same, then pick one at random
-    if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
-      drop = sample(idx, length(idx) - 1, replace = FALSE)
-      genetic_data = genetic_data[-drop,]
-    }
+    drop = idx
+    genetic_data = genetic_data[-drop,]
     next
+    # set$interview_language = set$language_fromcoords
+    # If the inferred languages are not all the same, then pick one at random
+    # if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
+    #   drop = sample(idx, length(idx) - 1, replace = FALSE)
+    #   genetic_data = genetic_data[-drop,]
+    # }
   }
   
-  # If all duplicate genomes speak the same langauge, do nothing
-  if(length(unique(set$interview_language)) == 1){
+  # If all duplicate genomes speak the same language, then take the first one
+  if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
+    drop = idx[-1]
+    genetic_data = genetic_data[-drop,]
     next
   }
   
   # If all languages are different, pick one at random
-  if(all(!is.na(set$interview_language)) & !all(set$interview_language[1] == set$interview_language)){
+  if(any(is.na(set$interview_language)) | !all(set$interview_language[1] == set$interview_language)){
     drop = sample(idx, length(idx) - 1, replace = FALSE)
     genetic_data = genetic_data[-drop,]
     print("These people have identical genetic records but different languages")
@@ -355,41 +358,73 @@ for(i in unique(genetic_data$mutations_sets)){
   }
   
   # If there are duplicate genomes but only one unique language, drop the others
-  if(any(!is.na(set$interview_language))){
-    drop = idx[is.na(set$interview_language)]
+  if(any(!is.na(set$interview_language)) & nrow(set) > 1){
+    drop = idx[!is.na(set$interview_language)] # remove individuals with missing language data
+    
+    l_sample = ifelse(length(drop) == 1, 1, length(drop) - 1)
+    drop = sample(drop, l_sample, replace = FALSE) # select langauge at random
     genetic_data = genetic_data[-drop,]
     next
   }
 }
 
+nrow(genetic_data)
+n_distinct(genetic_data$mutations_fromRCRS) == nrow(genetic_data)
+
+## Merge and subset to TNG data
+drop_provinces = c("West New Britain", 
+                   "Bougainville",
+                   "East New Britain",
+                   "New Ireland")
+
+TNG = genetic_data %>% 
+  filter(!str_detect(haplogroup, "B4a")) %>% # remove austronesians Austronesian
+  filter(!province %in% drop_provinces) %>% 
+  filter(!ID %in% duplicates$ID) %>% 
+  mutate(PhyID = paste0(ID, "_", haplogroup),
+         PhyID = gsub(" ", "", PhyID, fixed = TRUE))
+
+TNG_Branch = TNG %>% 
+  filter(TNG == 1)
+
+
+cat(sum(!is.na(TNG$interview_language)),
+    "individuals provide language data, from a total of",
+    nrow(TNG), "individuals")
+
+
 # If there is no language recorded, use the inferred language data 
-cat("We infer the language for", 
-    sum(is.na(genetic_data$interview_language) & !is.na(genetic_data$language_fromcoords)),
+cat("We could infer the language for", 
+    sum(is.na(TNG$interview_language) & !is.na(TNG$language_fromcoords)),
     "individuals, from a total of",
-    nrow(genetic_data), "individuals")
+    nrow(TNG), "individuals. But we do not currently")
 
-split_byset = split(genetic_data[,c("ID", "mutations_sets", "interview_language", "language_fromcoords", "latitude_hybrid", "longitude_hybrid")], genetic_data$mutations_sets)
-idx = sapply(split_byset, nrow) > 1
 
-genetic_sheet1$interview_language[is.na(genetic_sheet1$interview_language)] =
-  genetic_sheet1$language_fromcoords[is.na(genetic_sheet1$interview_language)]
+## Identify Austronesian langauges
+TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
+                                                 "Adzera [adz]",
+                                                 "Kilivila [kij]",
+                                                 "Maisin [mbq]",
+                                                 "Mutu [tuc]",
+                                                 "Nyindrou [lid]",
+                                                 "Suau [swp]",
+                                                 "Waima [rro]",
+                                                 "Kuanua [ksd]")
 
 
 #### Write the raw data ####
-# Comma seperated
+# All Formatted data
 write.csv(genetic_data, 'processed_data/genetic_samples.csv', row.names = FALSE, na = "")
 
-# tab seperate for TreeViewer
-picks = c("ID", "Branch_Family", "interview_language")
-tsv = genetic_data[, picks]
-tsv$Branch_Family[is.na(tsv$Branch_Family)] = "Missing"
+# Only mainland PNG data
+write.csv(TNG, "NCI/20240917_RAll/TNGData.csv")
 
+# Only TNG Speakers
+write.csv(TNG_Branch, "NCI/20240917_RAll/TNGBranchData.csv", row.names = FALSE)
 
-write.table(
-  tsv,
-  'processed_data/genetic_samples.tsv',
-  row.names = FALSE,
-  na = "",
-  sep = "\t",
-  quote = FALSE
-)
+# Write Genetic reference data
+gen_data = Biostrings::readDNAMultipleAlignment("processed_data/papua_completeset.fasta")
+# subset to those of interest
+gen_subset = gen_data@unmasked[TNG$PhyID]
+
+Biostrings::writeXStringSet(gen_subset, filepath = 'NCI/20240910_CBESbModelTest_ALL/all.fasta')

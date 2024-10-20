@@ -6,11 +6,14 @@ editor: visual
 bibliography: references.bib
 ---
 
-### Software Packages
+# Software Packages
 
 Here we load all necessary packages to build the supplementary material.
 
-```{r message=FALSE}
+```{r}
+#| message: false
+#| echo: false
+
 # Install BiocManager Packages
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
@@ -54,7 +57,7 @@ library(rnaturalearthdata)
 library(ggspatial)
 ```
 
-### Linguistic Metadata
+# Linguistic Metadata
 
 Our genetic data was taken from a range of sources (see Supplementary Table X <!--# This will be a table of where the samples were taken -->). In each case. there was a variant of the question "What is your primary language?". In Y cases, language was inferred based on the location from which the sample was taken. All coding decisions on language names, locations, and the comparability of questions across samples are detailed in the script `processing/format_geneticdata.R`.
 
@@ -67,6 +70,7 @@ if(!file.exists("processed_data/genetic_samples.csv")){
 }
 
 metadata = read.csv("processed_data/genetic_samples.csv")
+metadata = read.csv("NCI/20240917_RAll/TNGData.csv")
 # Make taxa labels
 metadata$PhyID = paste(metadata$ID, metadata$haplogroup, sep = "_")
 # strip whitespace to match taxa labels
@@ -106,7 +110,7 @@ We could consider Paiwaian as Tereban. SP needs to talk to NE about the strength
 
 -   We have one speaker of Orokolo, an Eleman language that is sometimes categorised as a TNG language. @pawley2017 write there is no evidence for this link. We do not categorise this language as TNG.
 
-### Maps of Samples
+# Maps of Samples
 
 ```{r map, echo = FALSE, warning=FALSE, message=FALSE}
 if(!file.exists("figures/base_map.Rdata")){
@@ -139,6 +143,18 @@ ggsave(plot = p, filename = "figures/map_ofsamples.png")
 
 This project leverages existing samples drawn from 14 papers, with an additional 7 unpublished samples. In total, we analyse a sample of 861 mitogenomes. See Supplementary Table XX for the original papers which details the sequencing technology used for each paper.
 
+```{r}
+#| echo: false
+
+ref_count = metadata %>% 
+  group_by(reference) %>% 
+  count() %>% 
+  arrange(desc(n))
+
+kable(ref_count)
+
+```
+
 mtDNA samples were sequenced using \[what technology?\] <!--# How was this done? Probably ask Franois-Xavier -->. Sequences are reconstructed from the Revised Cambridge Reference Sequence (rCRS). See script `processing/create_reference_genomes.R` for processing details. We split mtDNA samples into M and N haplotype groups for computational efficiency.
 
 ```{r genetic_data_processing, echo = FALSE, eval=FALSE}
@@ -158,15 +174,9 @@ For phylogenetic modelling, we do not include duplicate genomes, as the contain 
 
 ## Phylogenetic model
 
-We use BEAST v2.7.4 to infer the genealogical relationships between our set of XXX mitogenomes. We use the BEAST package bModeltest to assess the most appropriate Substitution model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model. We model N and M haplogroups in seperate models.
+#### Mutation Rates
 
-Both models use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci [@heled2008]. The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate. We adjust the factor rate of the tree prior to 0.5, and chnge the population prior mean to an improper prior of 1/x, as suggested in @heled2008.
-
-In each of the M and N Haplogroup trees, we have one outlier from the opposing group, which is labelled as a monphyletic outlier in the analysis. In addition we imposed monophyletic groupings for the B4a1 and P haplogroups within the N phylogeny. Within the M phylogeny, we impost monophyletic groupings for E, Q and M haplogroups. Additionally, within M we create monophyletic groups for M27, M28, and M29.
-
-#### Clock model / Mutation Rates
-
-We use a strict clock mutation rate for M and N haplogroups. We determine mtDNA mutations rates from studies calibrating the human mitochondrial clock (@rieux2014, @fu2013). In both studies we consider the whole genome substitution rate. We take the mean mutation rate from both papers to determine our rate.
+We use a strict clock mutation. We determine mtDNA mutations rates from studies calibrating the human mitochondrial clock (@rieux2014, @fu2013). In both studies we consider the whole genome substitution rate. We take the mean mutation rate from both papers to determine our rate.
 
 |             Paper | Estimated Mean Mutation Rate |  Estimated 95% C.I.   |
 |------------------:|:----------------------------:|:---------------------:|
@@ -174,168 +184,58 @@ We use a strict clock mutation rate for M and N haplogroups. We determine mtDNA 
 | Rieux et al. 2014 |        2.143 x 10^-8^        | 1.58 - 2.706 x 10^-8^ |
 |         Used here |       2.4065 x 10^-8^        |          \-           |
 
+: {Mutation rates from existing studied #tbl-letters}
+
 #### MCMC Settings
 
-We run all models for 10,000,000 MCMC iterations, storing every 10,000 iterations. All necessary parameters have a ESS \> 200. We run the analyses twice to assess chain convergence. We take a burn-in of 20% <!--# check -->, which leaves us with a posterior sample of 8,000 trees for the M and N haplotypes, using the BEAST2 LogCombiner tool. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool [@heled2013].
+We run all models for 175,570,000 MCMC iterations, storing every 10,000 iterations. We take a burn-in of 20% which leaves us with a posterior sample of 14,047 trees, using the BEAST2 LogCombiner tool [@drummond2007]. All valuable parameters have an ESS \> 200. We create a Maximum Clade Credibility tree (MCCT) using the BEAST2 TreeAnnotator tool [@heled2013].
 
-## M Haplogroup
-
-All parameters exhibit appropriate Markov Chain convergence and sufficient levels of sample, with effective sample sizes (ESS) of greater than 200 after discarding the first 20% of the chain, leaving a sample of 8001 trees. Below we show the MCMC trace, and the maximum clade credibility tree (MCC), with values representing node support. The MCC tree is generatred using TreeAnnotator v2.7.6 [@t]
-
-The bModeltest results show 44.63% support for a TIM (123341) model. This is a Transition model, AC=GT, AT=CG with unequal base freq.
+The bModeltest results show 44.41% support for a nucleotide substitution model of the form 123323. This is a non-traditional substitution model which contains distinct parameters for the A-C transition; A-G and C-T transversions; and third parameters for the G-T transition, and the A-T and C-G transversions.
 
 ```{r}
 #| echo: false
-
-m.log = read.table("NCI/20240803_M_CBES_bModelTest/CBES_bModeltest_lessclades.log")
+log = read.table("NCI/20240910_CBESbModelTest_ALL/top.log",
+                 header = TRUE,
+                 skip = 1219)
 
 # remove 20% burnin
-burnin = ceiling(nrow(m.log) * 0.2)
-m.log = n.log[burnin:nrow(m.log),]
+burnin = ceiling(nrow(log) * 0.2)
+log.noburnin = log[burnin:nrow(log),]
 
-ggplot(data = m.log, aes(x = Sample, y = posterior)) + 
+ggplot(data = log.noburnin, aes(x = Sample, y = posterior)) + 
   geom_line() + 
+  theme_minimal() + 
+  ggtitle("MCMC Trace of the Posterior",
+          "With burn-in removed") + 
   ylab("Posterior") + xlab("")
 ```
 
-## N Haplogroup
-
-N Haplogroup MCMC was run for 174730000 iterations. All parameters exhibit appropriate Markov Chain convergence and sufficient levels of sample, with effective sample sizes (ESS) of greater than 200 after discarding the first 10% of the chain, leaving a sample of 15732 trees, we subsample at regular intervals to reduce the sample to 8001, matching the M haplogroup posterior.
+## Population History
 
 ```{r}
-#| echo: false
+ebsp = read.table("NCI/20240924_CBESbModelTest_All/ebsp_output.txt", sep = "\t", header = TRUE)
 
-n.log = read.table("NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj.log",
-                   header = TRUE)
-
-# remove 10% burnin
-burnin = ceiling(nrow(n.log) * 0.1)
-n.log = n.log[burnin:nrow(n.log),]
-
-#subsample to 8001 
-idx.ss = seq(from = 1, to = nrow(n.log), by = (nrow(n.log) / 8001))
-n.log = n.log[idx.ss,]
-
-ggplot(data = n.log, aes(x = Sample, y = posterior)) + 
+ggplot(ebsp, aes(x = time, y = median)) + 
   geom_line() + 
-  ylab("Posterior") + xlab("")
+  geom_ribbon(aes(ymin = X95HPD.lower, ymax = X95HPD.upper), alpha = 0.4)
 ```
 
 # Inference Results
 
 ## Language Metadata
 
-As set out above, we have divided the genetic data into major haplogroups, M & N, for phylogenetic analysis. The aim of this project is to determine whether linguistic affiliation structures genetic diversity by calculating the probability of sharing a language trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, whether the language spoken by an individual is Trans-New Guinea of not, and then breaking Trans-New Guinea speakers down into language clades. This means for the two analyses, we have four results.
+The aim of this project is to determine whether linguistic affiliation structures genetic diversity by calculating the probability of sharing a language trait within a genetic clade, and the rate of within and between group variance for all pairs of traits. Traits are analysed at two levels, whether the language spoken by an individual is Trans-New Guinea of not, and then breaking Trans-New Guinea speakers down into language clades. This means for the two analyses, we have two results.
 
-1.  M Haplogroup - Presence or absence of TNG
-2.  M Haplogroup - Language Clade
-3.  N Haplogroup - Presence or absence of TNG
-4.  N Haplogroup - Language Clade
-
-```{r m_haplogroup_data, eval=FALSE, echo=FALSE}
-# Read in the M Haplotype tree
-mtree_file = "NCI/20240704_M_CBES_bModelTest/CBES_bModeltest-papua_m.noburnin.trees"
-m_tree = read.nexus(mtree_file)
-
-# 31 individuals are N Haplotypes but do not have language data
-# metadata %>%
-#   filter(haplogroup_MN == "M" & PhyID %in% m_tree[[1]]$tip.label) %>%
-#   # Remove missing langauge or responses that refer to unknown language.
-#   filter(interview_language %in% c("", "Imani")) %>%
-#   nrow()
-
-metadata_m = metadata %>% 
-  filter(haplogroup_MN == "M" & PhyID %in% m_tree[[1]]$tip.label) %>%
-  filter(!interview_language %in% c("", "Imani")) %>%
-  # Remove missing langauge or responses that refer to unknown language.
-  select(ID, PhyID, interview_language, TNG_Branch, TNG, latitude_hybrid, longitude_hybrid)
-
-metadata_m = rbind(metadata_m, metadata[metadata$PhyID == "HGDP00546_P1d(P1d1a)",
-                                      c("ID", "PhyID", "interview_language", 
-                                        "TNG_Branch", "TNG", "latitude_hybrid", 
-                                        "longitude_hybrid")])
-
-# Prune the tree for all individuals for which we have language data for
-keep_tips = metadata_m$PhyID
-
-cat("There are", length(m_tree[[1]]$tip.label),"taxa in the N Haplogroup phylogeny")
-
-m_tree = lapply(m_tree, function(t)
-  keep.tip(t, keep_tips))
-
-cat("There are", length(keep_tips),"language matched taxa in the M Haplogroup phylogeny")
-
-ape::write.nexus(m_tree, 
-                 file = paste0("NCI/20240618_R_M/",  basename(mtree_file)))
-
-tt = assert_that(nrow(metadata_m) > 1)
-
-write.csv(metadata_m, "NCI/20240618_R_M/language_metadata.csv")
-```
-
-```{r n_haplogroup_data, eval = FALSE, echo=FALSE}
-# Read in the N Haplotype tree
-ntree_file = "NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj-papua_n.noburnin.trees"
-n_tree = read.nexus(ntree_file)
-
-# 20 individuals are N Haplotypes but do not have language data
-# metadata %>%
-#   filter(haplogroup_MN == "N" & PhyID %in% n_tree$tip.label) %>%
-#   # Remove missing langauge or responses that refer to unknown language.
-#   filter(interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>%
-#   nrow()
-
-metadata_n = metadata %>% 
-  filter(haplogroup_MN == "N" & PhyID %in% n_tree[[1]]$tip.label) %>%
-  # Remove missing langauge or responses that refer to unknown language.
-  filter(!interview_language %in% c("", "Imani", "Eyagu", "Kora")) %>%
-  select(ID, PhyID, interview_language, TNG_Branch, TNG, latitude_hybrid, longitude_hybrid)
-
-metadata_n = rbind(metadata_n, metadata[metadata$PhyID == "HGDP00545_Q1a(Q1a1)",
-                                      c("ID", "PhyID", "interview_language", 
-                                        "TNG_Branch", "TNG", "latitude_hybrid", 
-                                        "longitude_hybrid")])
-
-# Prune the tree for all individuals for which we have language data for
-keep_tips = metadata_n$PhyID
-
-cat("There are", length(n_tree[[1]]$tip.label),"taxa in the N Haplogroup phylogeny")
-
-n_tree = lapply(n_tree, function(t)
-  keep.tip(t, keep_tips))
-
-cat("There are", length(keep_tips),"language matched taxa in the N Haplogroup phylogeny")
-
-# pick 1000 trees
-idx = sample(seq_along(n_tree), size = 1000, replace = TRUE)
-
-ape::write.nexus(n_tree[idx], file = paste0("NCI/20240709_R_N/",  basename(ntree_file)))
-
-tt = assert_that(nrow(metadata_n) > 1)
-
-write.csv(metadata_n, "NCI/20240709_R_N/language_metadata.csv")
-```
+1.  Presence or absence of TNG
+2.  TNG Language Clade
 
 ```{r}
-metadata_m = read.csv("NCI/20240618_R_M/language_metadata.csv")
-metadata_n = read.csv("NCI/20240715_R_N/language_metadata.csv")
+metadata = read.csv("NCI/20240917_RAll//TNGData.csv")
 
-tng_m = ifelse(metadata_m$TNG == 1, "TNG", "Not TNG")
-tng_n = ifelse(metadata_n$TNG == 1, "TNG", "Not TNG")
-tng = data.frame(Haplogroup = rep(c("M", "N"), times = c(length(tng_m), length(tng_n))),
-                 Count = c(tng_m, tng_n))
+metadata$tng_words = ifelse(metadata$TNG == 1, "TNG", "Not TNG")
+metadata$major_haplogroup = substr(metadata$haplogroup, 1, 1)
 
-kable(table(tng$Count, tng$Haplogroup))
-
-# tng_m_clade = metadata_m %>% 
-#   group_by(TNG_Branch) %>% count()
-# tng_n_clade = metadata_n %>% group_by(TNG_Branch) %>% count()
-# 
-# tng_clade = full_join(tng_m_clade, tng_n_clade, by = "TNG_Branch")
-# 
-# kable(table(metadata$TNG_Branch), col.names = c("TNG Clade", "Count"))
-
-# kable(tng_clade, col.names = c("TNG Clade", "M Count", "N Count"))
+kable(table(metadata$TNG_Branch, metadata$major_haplogroup))
 ```
 
 ### Trait heritage
@@ -360,108 +260,52 @@ As with [@lansing2017], we compare the calculated probability with a permuted pr
 
 We apply the trait heritage function across a posterior of trees. Within each tree we calculate the probability from the data, and the XXX permutations. This analysis was performed with computational resources provided by NCI Australia, an NCRIS enabled capability supported by the Australian Government.
 
-#### mtDNA N Haplotype
+### Walking Distance
 
-##### Trans-New Guinea structure
+We calculate distance between individuals as the cumulative time using Tobler's hiking distance. We then look at three increasing time barriers that map onto approximate distances of marriage according to @amato1983 (Table 1), which states that marriages range from between 1 and 186 kilometers away, with closer marriages being more common. Assuming a baseline of flatground walking, 66km takes around 12 hours, Taking these distances, we look at marriages that are approximately 6 hours walk away, 12 hours walk away, and 24 hours walk away (not including breaks for sleeping).
+
+### Trans-New Guinea structure
 
 ```{r echo=FALSE}
-mcct_tree_mtdnaN = read.nexus("NCI/20240702_N_CBES_bModelTest/20240617_CBES_bModelTest_adj-papua_n.mcct.trees") 
+source("analysis/helper.R")
 
-mcct_depth = mean(adephylo::distRoot(mcct_tree_mtdnaN))
+mcct_tree = read.nexus("NCI/20240910_CBESbModelTest_ALL/full_model-all.mcct.trees") 
+mcct_depth = mean(adephylo::distRoot(mcct_tree))
 
 language_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_languagefamily.csv")
+  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_languagefamily.csv")
 
 # Because we calculate the probability per group, we need to make this generational average 
 # for trait probabaility data. But for Permutations, the average is all that is calculated
 # because of the computational memory issues. 
-language_probability = data.table(language_probability)
-
-numerator = language_probability[, .(numerator_sum = sum(numerator)), by = list(posterior, generation)]
-denominator = language_probability[, .(unique_denominator = unique(denominator)), 
-                                   by = list(posterior, generation, clade)]
-denominator = denominator[, .(denominator_sum = sum(unique_denominator)), 
-                          by = list(posterior, generation)]
-
-language_probability_agg = numerator[denominator, on = list(posterior, generation),]
-language_probability_agg[, clade_probability := numerator_sum / denominator_sum]
-# language_probability = language_probability[state == 1,]
-
-permuted_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_permuted_languagefamily.csv")
-
-summarizer = function(posterior){
-  posterior$generation_time = as.numeric(gsub("g_", replacement = "", posterior$generation))
-  # posterior$clade_probability = posterior$numerator / posterior$numerator
-  posterior %>%
-  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-  group_by(generation_time) %>%
-  summarise(mean.prob = mean(clade_probability, na.rm = TRUE),
-            ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
-            n_matches = sum(numerator_sum)) %>% 
-  tidyr::unpack(ci_hdi)
-}
+language_probability_agg = posterior_aggregator(language_probability)
 
 # Summarise the posterior
 posterior_summary = summarizer(language_probability_agg)
 # remove results that are older than the MCCT tree
 posterior_summary = posterior_summary[posterior_summary$generation_time < mcct_depth,]
 
+permuted_probability = 
+  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_permuted.csv")
+
 permuted_summary = summarizer(permuted_probability)
 permuted_summary = permuted_summary[permuted_summary$generation_time < mcct_depth,]
 
-# cleaned_tips = gsub("_.*","", mcct_tree_mtdnaN$tip.label)
-# mcct_tree_mtdnaN$tip.label = cleaned_tips
+metadata = read.csv('NCI/20240917_RAll/TNGData.csv') %>% 
+  mutate(PhyID = paste0(ID, "_", haplogroup)) %>% 
+  filter(PhyID %in% mcct_tree$tip.label)
+# metadata_n = metadata[metadata$PhyID %in% mcct_tree_mtdnaN$tip.label, ]
+mcct_tree = keep.tip(mcct_tree, 
+                            metadata$PhyID[!is.na(metadata$TNG)])
 
-metadata_n = read.csv('NCI/20240715_R_N/language_metadata.csv')
-metadata_n = metadata[metadata$PhyID %in% mcct_tree_mtdnaN$tip.label, ]
-mcct_tree_mtdnaN = keep.tip(mcct_tree_mtdnaN, metadata_n$PhyID[!is.na(metadata_n$TNG_Branch)])
+keep = metadata$PhyID[!is.na(metadata$TNG)]
+mcct_tree = keep.tip(mcct_tree, keep)
 
-keep = metadata_n$PhyID[!is.na(metadata_n$TNG)]
-mcct_tree_mtdnaN = keep.tip(mcct_tree_mtdnaN, keep)
-
-tree_data = full_join(mcct_tree_mtdnaN, metadata_n, by = c(label = "PhyID"))
+tree_data = full_join(mcct_tree, metadata, by = c(label = "PhyID"))
 
 #### plot 
-p_tree = ggtree(tree_data) + 
-  geom_tippoint(aes(col = factor(TNG)), shape = "\u2588", size = 1) +
-  scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
-                     labels = c("10k", "20k", "30k", "40k")) +
-  layout_dendrogram() + 
-  theme(legend.position = "bottom", 
-        axis.ticks.y = element_line(),
-        axis.line.y = element_line(),
-        axis.text.y = element_text())
-
-# match scales in each plot
-x_range = layer_scales(p_tree)$x$range$range
-  
-p_prob = ggplot(data = posterior_summary,
-                aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5) +
-  geom_line(col = "blue") +
-  geom_ribbon(data = permuted_summary,
-              aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob),
-              fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = permuted_summary,
-              aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  ylim(c(0.5, 1)) +
-  xlim(x_range) + ## max tree height (or max p_tree?)
-  coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  # scale_x_continuous(expand = c(0, 0)) + 
-  # scale_y_continuous(expand = c(0, 0)) + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5))
-
-p_TNG = p_tree + p_prob + 
-  plot_layout(widths = c(1, 0.25))
-
-p_TNG
+p_TNG = tree_line_plot(tree_data, posterior_summary, permuted_summary, "TNG")
+print(p_TNG)
 
 ggsave(plot = p_TNG, file = "figures/TNG_N_probability.png", 
        width = 315, height = 335, units = "mm")
@@ -471,153 +315,104 @@ ggsave(plot = p_TNG, file = "figures/TNG_N_probability.png",
 These next graphs show the probability of shared language family against geographic proximity. we test geographic proximity at three distances: are two individuals within 50km of each other, 100kms, or 200kms.
 
 ```{r}
-distance50_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance50.csv")
-distance35_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance35.csv")
-distance20_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance20.csv")
+distance24 = 
+  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_24hours.csv")
+distance12 = 
+  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_12hours.csv")
+distance6 = 
+  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_6hours.csv")
 
-distance_summary = lapply(list(long = distance50_probability,
-                        medium = distance35_probability,
-                        short = distance20_probability), 
-                        summarizer)
+dl = list(long = distance24,
+     medium = distance12,
+     short = distance6)
 
-distance_summary = bind_rows(distance_summary, .id = "distance")
+ds = lapply(dl, summarizer)
+
+distance_summary = bind_rows(ds, .id = "distance")
 distance_summary$distance = factor(distance_summary$distance, 
                                    levels = c("short", "medium", "long"))
 
+distance_language = lapply(dl, function(x){
+  x = as.data.table(x)
+  x[language_probability_agg, on = list(posterior, generation)]
+})
+
 distance_summary = distance_summary[distance_summary$generation_time < mcct_depth,]
 
-facet_names = c(`short` = "w/n 20km",
-                `medium` = "w/n 35km",
-                `long` = "w/n 50km")
+facet_names = c(`short` = "w/n 6h",
+                `medium` = "w/n 12h",
+                `long` = "w/n 24h")
 
-p_TNG_N_Dist = ggplot(data = distance_summary,
-       aes(
-         ymin = CI_low,
-         ymax = CI_high,
-         x = generation_time,
-         y = mean.prob
-       )) +
-  geom_ribbon(fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = distance_summary,
-            aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  facet_grid(~ distance, labeller = as_labeller(facet_names)) +
-  geom_ribbon(
-    data = posterior_summary,
-    aes(
-      ymin = CI_low,
-      ymax = CI_high,
-      x = generation_time,
-      y = mean.prob
-    ),
-    fill = "lightblue",
-    alpha = 0.5
-  ) + geom_line(data = posterior_summary,
-                aes(x = generation_time,
-                    y = mean.prob),
-                col = "blue") +
-  scale_x_reverse(breaks = c(0, 10000, 20000, 30000, 40000, 50000, 60000, 70000),
-                  labels = c("0", "10k", "20k", "30k", "40k", "50k", "60k", "70k")) + 
-  xlab("Time (years)") + 
-  ylab("Probability") + 
-  theme_classic()
-
-p_TNG_N_Dist
+p_TNG_N_Dist = Dist_Plot(posterior_summary, distance_summary, facet_names)
+print(p_TNG_N_Dist)
 
 ggsave(plot = p_TNG_N_Dist, file = "figures/TNG_N_Distance.png")
 
 ```
 
-##### TNG Branch
+#### Language-Distance Difference
+
+```{r}
+
+ld = read.csv("results/TNG_full_model-all.noburninlangdist_24hours.csv")
+
+ld$generation_time = as.numeric(gsub("g_", replacement = "", ld$generation))
+
+lang_dist_summary = ld %>%
+    group_by(generation_time) %>%
+    summarise(mean.langdist = mean(p_lang_dist),
+              mean.p_lang_nodist = mean(p_lang_nodist),
+              mean.p_nolang_dist = mean(p_nolang_dist),
+              mean.p_nolang_nodist = mean(p_nolang_nodist)) %>% 
+  reshape2::melt(id = c("generation_time"))
+
+
+ggplot(lang_dist_summary, aes(x = generation_time, y = value, fill = variable)) + 
+  geom_area(position = "stack") 
+
+ggplot(lang_dist_summary, aes(x = generation_time, y = value, col = variable)) + 
+  geom_line(lwd = 1.5) + 
+  theme_minimal()
+```
+
+### TNG Branch
 
 ```{r, TNG_Probability, warning=FALSE, echo=FALSE}
 language_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_Branch_20240617_CBES_bModelTest_adj-papua_n.noburnin_languagefamily.csv")
+  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_languagefamily.csv")
 
 # Because we calculate the probability per group, we need to make this generational average 
 # for trait probabaility data. But for Permutations, the average is all that is calculated
 # because of the computational memory issues. 
-language_probability = data.table(language_probability)
-numerator = language_probability[, .(numerator_sum = sum(numerator)), by = list(posterior, generation)]
-denominator = language_probability[, .(unique_denominator = unique(denominator)), 
-                                   by = list(posterior, generation, clade)]
-denominator = denominator[, .(denominator_sum = sum(unique_denominator)), 
-                          by = list(posterior, generation)]
-
-nrow(numerator) == nrow(denominator)
-
-language_probability_agg = numerator[denominator, on = list(posterior, generation),]
-language_probability_agg[, clade_probability := numerator_sum / denominator_sum]
-
-permuted_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_Branch_20240617_CBES_bModelTest_adj-papua_n.noburnin_permuted_languagefamily.csv")
+language_probability_agg = posterior_aggregator(language_probability)
 
 # Summarise the posterior
 posterior_summary = summarizer(language_probability_agg)
 # remove results that are older than the MCCT tree
 posterior_summary = posterior_summary[posterior_summary$generation_time < mcct_depth,]
 
+permuted_probability = 
+  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_permuted.csv")
 permuted_summary = summarizer(permuted_probability)
 permuted_summary = permuted_summary[permuted_summary$generation_time < mcct_depth,]
 
-# cleaned_tips = gsub("_.*","", mcct_tree_mtdnaN$tip.label)
-# mcct_tree_mtdnaN$tip.label = cleaned_tips
-
-tree_data = full_join(mcct_tree_mtdnaN, metadata_n, by = c(label = "PhyID"))
+tree_data = full_join(mcct_tree, metadata, by = c(label = "PhyID"))
 
 #### plot 
-p_tree = ggtree(tree_data) + 
-  geom_tippoint(aes(col = TNG_Branch), shape = "\u2588", size = 1.0) +
-  scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
-                     labels = c("10k", "20k", "30k", "40k")) +
-  layout_dendrogram() + 
-  theme(legend.position = "bottom", 
-        axis.ticks.y = element_line(),
-        axis.line.y = element_line(),
-        axis.text.y = element_text())
+p_TNGBranch = tree_line_plot(tree_data, posterior_summary, permuted_summary, "TNG_Branch")
+print(p_TNGBranch)
 
-# match scales in each plot
-x_range = layer_scales(p_tree)$x$range$range
-  
-p_prob = ggplot(data = posterior_summary,
-                aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5) +
-  geom_line(col = "blue") +
-  geom_ribbon(data = permuted_summary,
-              aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob),
-              fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = permuted_summary,
-              aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  ylim(c(0, 1)) +
-  xlim(x_range) + ## max tree height (or max p_tree?)
-  coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  # scale_x_continuous(expand = c(0, 0)) + 
-  # scale_y_continuous(expand = c(0, 0)) + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5))
-
-p_TNGBranch = p_tree + p_prob + 
-  plot_layout(widths = c(1, 0.25))
-
-ggsave(plot = p_TNGBranch, file = "figures/TNGBranch_N_probability_N.png",
+ggsave(plot = p_TNGBranch, file = "figures/TNGBranch_N_probability.png",
        width = 315, height = 335, units = "mm")
 ```
 
 ```{r, TNG_Distance, warning=FALSE}
 distance50_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_Branch_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance50.csv")
+  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_24hours.csv")
 distance35_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_Branch_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance35.csv")
+  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_12hours.csv")
 distance20_probability = 
-  read.csv("NCI/20240715_R_N/results/TNG_Branch_20240617_CBES_bModelTest_adj-papua_n.noburnin_distance20.csv")
+  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_6hours.csv")
 
 distance_summary = lapply(list(long = distance50_probability,
                         medium = distance35_probability,
@@ -630,155 +425,15 @@ distance_summary$distance = factor(distance_summary$distance,
 
 distance_summary = distance_summary[distance_summary$generation_time < mcct_depth,]
 
-facet_names = c(`short` = "w/n 20km",
-                `medium` = "w/n 35km",
-                `long` = "w/n 50km")
+facet_names = c(`short` = "w/n 6hr",
+                `medium` = "w/n 12hr",
+                `long` = "w/n 24hr")
 
-p_TNGBranch_N_Dist = ggplot(data = distance_summary,
-       aes(
-         ymin = CI_low,
-         ymax = CI_high,
-         x = generation_time,
-         y = mean.prob
-       )) +
-  geom_ribbon(fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = distance_summary,
-            aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  facet_grid(~ distance, labeller = as_labeller(facet_names)) +
-  geom_ribbon(
-    data = posterior_summary,
-    aes(
-      ymin = CI_low,
-      ymax = CI_high,
-      x = generation_time,
-      y = mean.prob
-    ),
-    fill = "lightblue",
-    alpha = 0.5
-  ) + geom_line(data = posterior_summary,
-                aes(x = generation_time,
-                    y = mean.prob),
-                col = "blue") +
-  scale_x_reverse(breaks = c(0, 10000, 20000, 30000, 40000, 50000, 60000, 70000),
-                  labels = c("0", "10k", "20k", "30k", "40k", "50k", "60k", "70k")) + 
-  xlab("Time (years)") + 
-  ylab("Probability") + 
-  theme_classic()
+p_TNGBranch_N_Dist = Dist_Plot(posterior_summary, distance_summary, facet_names)
 
 p_TNGBranch_N_Dist
 
 ggsave(plot = p_TNGBranch_N_Dist, file = "figures/TNGBranch_N_Distance.png")
-```
-
-#### mtDNA M Haplotype
-
-```{r eval=FALSE,echo=FALSE,warning=FALSE}
-mcct_tree_mtdnaM = read.nexus("NCI/")
-
-language_probability = 
-  read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_languagefamily.csv")
-
-# permuted_probability = 
-#   read.csv("results/interview_languagefamily_mtDNA_M-papua_m.noburnin_permuted_languagefamily.csv")
-
-# Summarise the posterior
-posterior_summary = summarizer(language_probability)
-# permuted_summary = summarizer(permuted_probability )
-
-cleaned_tips = gsub("_.*","", mcct_tree_mtdnaM$tip.label)
-mcct_tree_mtdnaM$tip.label = cleaned_tips
-
-metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaM$tip.label, ]
-mcct_tree_mtdnaM = keep.tip(mcct_tree_mtdnaM, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
-
-tree_data = full_join(mcct_tree_mtdnaM, metadata, by = c("label" = "ID"))
-
-#### plot 
-p_tree = ggtree(tree_data) + geom_tippoint(aes(color = interview_languagefamily)) +
-  scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
-                     labels = c("10k", "20k", "30k", "40k")) +
-  layout_dendrogram() + 
-  theme(legend.position = "none", 
-        axis.ticks.y = element_line(),
-        axis.line.y = element_line(),
-        axis.text.y = element_text())
-
-# match scales in each plot
-x_range = layer_scales(p_tree)$x$range$range
-  
-p_prob = ggplot(data = posterior_summary,
-                aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5) + 
-  geom_line(col = "blue") + 
-  geom_ribbon(data = permuted_summary, 
-              aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob),
-              fill = "lightgreen", alpha = 0.5) + 
-  geom_line(data = permuted_summary, 
-              aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") + 
-  ylim(c(0, 1)) +
-  xlim(x_range) + ## max tree height (or max p_tree?)
-  coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  # scale_x_continuous(expand = c(0, 0)) + 
-  # scale_y_continuous(expand = c(0, 0)) + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5))
-
-p_tree + p_prob + 
-  plot_layout(widths = c(1, 0.25))
-```
-
-```{r, TNGBranch_Distance, warning=FALSE}
-distance50_probability = read.csv("results/interview_languagefamily_mtDNA_M-papua_m.noburnin_distance50.csv")
-distance100_probability = read.csv("results/interview_languagefamily_mtDNA_M-papua_m.noburnin_distance100.csv")
-distance200_probability = read.csv("results/interview_languagefamily_mtDNA_M-papua_m.noburnin_distance200.csv")
-
-distance_summary = lapply(list(short = distance50_probability,
-                        medium = distance100_probability,
-                        long = distance200_probability), 
-                        summarizer)
-
-distance_summary = bind_rows(distance_summary, .id = "distance")
-distance_summary$distance = factor(distance_summary$distance, 
-                                   levels = c("short", "medium", "long"))
-
-ggplot(data = distance_summary,
-       aes(
-         ymin = CI_low,
-         ymax = CI_high,
-         x = generation_time,
-         y = mean.prob
-       )) +
-  geom_ribbon(fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = distance_summary,
-            aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  facet_grid(~ distance, labeller = as_labeller(facet_names)) +
-  geom_ribbon(
-    data = posterior_summary,
-    aes(
-      ymin = CI_low,
-      ymax = CI_high,
-      x = generation_time,
-      y = mean.prob
-    ),
-    fill = "lightblue",
-    alpha = 0.5
-  ) + geom_line(data = posterior_summary,
-                aes(x = generation_time,
-                    y = mean.prob),
-                col = "blue") +
-  scale_x_reverse(breaks = c(0, 20000, 40000, 60000, 80000, 100000),
-                  labels = c("0", "20k", "40k", "60k", "80k", "100k")) + 
-  xlab("Time (years)") + 
-  ylab("Probability") + 
-  theme_classic()
-
 ```
 
 ```{r}
@@ -794,6 +449,7 @@ probability_bygroup = language_probability %>%
             n_matches = sum(numerator)) %>% 
   tidyr::unpack(ci_hdi)
 
+setDT(language_probability)
 dd = language_probability[, .(denominator_sum = sum(denominator)), 
                      by = c("posterior", "generation")]
 nn = language_probability[, .(numerator_sum = sum(numerator)), 
@@ -829,207 +485,6 @@ pp = ggplot() +
 pp
 
 ggsave(plot = pp, filename = "figures/TNGBranch_N_stackedprob.png")
-
-```
-
-#### mtDNA M: By trait results
-
-```{r, eval=FALSE, echo=FALSE}
-## Prepare the tree
-mcct_tree_mtdnaM = read.nexus("NCI/20240528_mtDNA_CCP/CCP-papua_m_noburnin.mcct.trees")
-cleaned_tips = gsub("_.*","", mcct_tree_mtdnaM$tip.label)
-mcct_tree_mtdnaM$tip.label = cleaned_tips
-
-metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaM$tip.label, ]
-mcct_tree_mtdnaM = keep.tip(mcct_tree_mtdnaM, metadata_ss$ID[!is.na(metadata_ss$Branch_Family)])
-
-tree_data = full_join(mcct_tree_mtdnaM, metadata, by = c("label" = "ID"))
-
-## Read in probability data
-language_probability = 
-  read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_languagefamily.csv")
-
-posterior_summary = language_probability %>% 
-  mutate(probability = numerator / denominator,
-         generation_num = as.numeric(str_remove(generation, "g_"))) %>% 
-  group_by(generation_num, posterior) %>% 
-  summarise(clade_probability = mean(probability, na.rm = TRUE),
-            numerator_sum = sum(numerator)) %>%
-  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-  group_by(generation_num) %>%
-  summarise(mean.prob = mean(clade_probability, na.rm = TRUE),
-            ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
-            n_matches = sum(numerator_sum)) %>% 
-  tidyr::unpack(ci_hdi)
-
-p_tree = ggtree(tree_data) + 
-  geom_tippoint(aes(col = Branch_Family), shape = "\u2588", size = 1.5) +
-  scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
-                     labels = c("10k", "20k", "30k", "40k")) +
-  layout_dendrogram() + 
-  theme(legend.position = "none", 
-        axis.ticks.y = element_line(),
-        axis.line.y = element_line(),
-        axis.text.y = element_text())
-
-# match scales in each plot
-x_range = layer_scales(p_tree)$x$range$range
-  
-p_prob = ggplot(data = posterior_summary,
-                aes(ymin = CI_low, ymax = CI_high, x = generation_num, y = mean.prob)) +
-  geom_ribbon(fill = "lightblue", alpha = 0.5) + 
-  geom_line(col = "blue") + 
-  ylim(c(0, 1)) +
-  xlim(x_range) + ## max tree height (or max p_tree?)
-  coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  # scale_x_continuous(expand = c(0, 0)) + 
-  # scale_y_continuous(expand = c(0, 0)) + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5))
-
-pp = p_tree + p_prob + 
-  plot_layout(widths = c(1, 0.25))
-
-ggsave(plot = pp, filename = "figures/mtDNA_M_CCP_wprob.png", width = 1920, units = "px", height = 1080)
-```
-
-#### mtDNA M: By Groups
-
-```{r eval = FALSE, echo = FALSE}
-probability_bygroup = language_probability %>% 
-  mutate(clade_probability = numerator / denominator,
-         generation_num = as.numeric(str_remove(generation, "g_"))) %>% 
-  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-  group_by(posterior, generation_num) %>%
-  summarise(denominator_gen = sum(denominator),
-            clade_probability = numerator / denominator_gen,
-            mean.prob = mean(clade_probability, na.rm = TRUE),
-            ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
-            n_matches = sum(numerator)) %>% 
-  tidyr::unpack(ci_hdi)
-
-ggplot(data = probability_bygroup,
-       aes(x = generation_num, y = mean.prob, fill = state)) + 
-  geom_area() + 
-  # ylim(c(0, 1)) +
-  xlim(x_range) + ## max tree height (or max p_tree?)
-  # coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  # scale_x_continuous(expand = c(0, 0)) + 
-  # scale_y_continuous(expand = c(0, 0)) + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5),
-        legend.position = "bottom") 
-
-
-library(data.table)
-
-setDT(language_probability)
-dd = language_probability[, .(denominator_sum = sum(denominator)), 
-                     by = c("posterior", "generation")]
-nn = language_probability[, .(numerator_sum = sum(numerator)), 
-                     by = c("posterior", "generation", "state")]
-setkey(dd, posterior, generation)
-dd_j = dd[nn]
-
-# dd = language_probability[, list(denominator_sum = sum(denominator), 
-#                                  numerator_sum = sum(numerator)), 
-#                      by = c("posterior", "generation", "state")]
-
-dd_j = dd_j[, .(probability = mean(numerator_sum / denominator_sum, na.rm = T)), 
-          .(generation, state)]
-dd_j[,  generation_num := as.numeric(str_remove(generation, "g_")),]
-
-# dd2 = dd_j[, .(probability = mean(numerator_sum / denominator_sum)), .(generation, state)]
-# dd2[,  generation_num := as.numeric(str_remove(generation, "g_")),]
-# 
-dd3 = language_probability[, .(probability = mean(numerator / denominator, na.rm = T)), .(generation)]
-dd3[,  generation_num := as.numeric(str_remove(generation, "g_")),]
-
-dd3 = dd_j[,.(probability = sum(probability, na.rm = T)), .(generation)]
-dd3[,  generation_num := as.numeric(str_remove(generation, "g_")),]
-# # dd_j[, probability := numerator_sum / denominator_sum,]
-# dd_j[,  generation_num := as.numeric(str_remove(generation, "g_")),]
-
-
-pp = ggplot() + 
-  geom_area(data = dd_j,
-       aes(x = generation_num, y = probability, fill = state), colour = "black") + 
-  geom_line(data = dd3,  aes(x = generation_num, y = probability)) + 
-  # ylim(c(0, 1)) +
-  xlim(0, 20000) + 
-  # xlim(x_range) + ## max tree height (or max p_tree?)
-  # coord_flip() +
-  xlab("") + 
-  ylab("") + 
-  theme_classic() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        panel.background = element_rect(colour = "black", linewidth=0.5),
-        legend.position = "none") 
-
-ggsave(plot = pp, filename = "figures/mtDNA_M_CCP_stackedlinechart2.png", , width = 1920, units = "px", height = 1080)
-
-```
-
-```{r eval=FALSE, echo=FALSE}
-distance50_probability = read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_distance50.csv")
-distance35_probability = read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_distance35.csv")
-distance20_probability = read.csv("results/Branch_Family_CCP-papua_m_noburnin_pruned_distance20.csv")
-
-distance_summary = lapply(list(short = distance50_probability,
-                        medium = distance35_probability,
-                        long = distance20_probability), 
-                        summarizer)
-
-distance_summary = bind_rows(distance_summary, .id = "distance")
-distance_summary$distance = factor(distance_summary$distance, 
-                                   levels = c("short", "medium", "long"))
-
-facet_names = c(`short` = "w/n 50km",
-                `medium` = "w/n 35km",
-                `long` = "w/n 20km")
-
-pp_dist = ggplot(data = distance_summary,
-       aes(
-         ymin = CI_low,
-         ymax = CI_high,
-         x = generation_time,
-         y = mean.prob
-       )) +
-  geom_ribbon(fill = "lightgreen", alpha = 0.5) +
-  geom_line(data = distance_summary,
-            aes(x = generation_time, y = mean.prob),
-            col = "forestgreen") +
-  facet_grid(~ distance, labeller = as_labeller(facet_names)) +
-  geom_ribbon(
-    data = posterior_summary,
-    aes(
-      ymin = CI_low,
-      ymax = CI_high,
-      x = generation_num,
-      y = mean.prob
-    ),
-    fill = "lightblue",
-    alpha = 0.5
-  ) + geom_line(data = posterior_summary,
-                aes(x = generation_num,
-                    y = mean.prob),
-                col = "blue") +
-  scale_x_continuous(breaks = c(0, 20000, 40000, 60000, 80000, 100000),
-                  labels = c("0", "20k", "40k", "60k", "80k", "100k")) + 
-  xlab("Time (years)") + 
-  ylab("Probability") + 
-  theme_classic()
-
-ggsave(plot = pp_dist, filename = "figures/mtDNA_M_CCP_distance.png",width = 1920, units = "px", height = 1080)
 
 ```
 
@@ -1143,44 +598,6 @@ tapply(stable_clades_summary$mean_Date, stable_clades_summary$TNG, summary)
 tapply(stable_clades_summary$mean_Date, stable_clades_summary$state, summary)
 ```
 
-#### mtDNA M Haplotypes
-
-```{r eval = FALSE, echo=FALSE}
-if(!file.exists("results/mtDNA_M_stableclades.csv")){
-    system("RScript analysis/stable_clades.R -t NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.trees -v Branch_Family")
-}
-
-mcct_tree_mtdnaM = read.nexus("NCI/mtDNA_M/mtDNA_M-papua_m.noburnin.mcct.trees")
-
-stable_clades = read.csv("results/mtDNA_M_stableclades.csv")
-
-states_df = data.frame(states = metadata_ss$Branch_Family, label = metadata_ss$ID)
-states_df = left_join(states_df, metadata_ss[, c("ID", "gender")], by = c("label" = "ID"))
-
-plot_tree = keep.tip(mcct_tree_mtdnaM, 
-                     states_df$label[states_df$label %in% mcct_tree_mtdnaN$tip.label])
-
-nodes = sapply(stable_clades$tips, function(x)
-  phytools::findMRCA(plot_tree, tips = unlist(strsplit(x, "; "))))
-
-phytools::findMRCA(plot_tree, tips = unlist(strsplit(stable_clades$tips[1], "; ")))
-nodes_df = data.frame(nodes = nodes, type = stable_clades$state)
-
-p1 = ggtree(tree_df, layout="roundrect", ladderize = TRUE, mrsd = "2023-01-01") + 
-  geom_tippoint(aes(colour = states, shape = gender)) +
-  geom_hilight(data=nodes_df, aes(node = nodes, fill = type),
-               type = "roundrect",
-               to.bottom = FALSE) +
-  labs(title = "N Haplotypes") + 
-  theme_classic(base_size = 20) + 
-  theme_tree2()
-p1
-
-
-```
-
-#### 
-
 ### Pairwise Between & Within group variance
 
 We do not only want to understand the probability of particular histories, but also rate at which histories coalesce. To do this, for each pair we calculate the probability of between and within group variance to understand at what point, according to the phylogeny, were two languages groups likely to have been one language group.
@@ -1264,3 +681,104 @@ ggsave(plot = within_N, filename = "figures/TNG_N_Within.png")
 ```
 
 # Genetic and Linguistic Distance
+
+```{r}
+## Data from Greenhill (In Press) - the TNG Phylogeny
+tng_tree = read.nexus("https://raw.githubusercontent.com/phlorest/greenhill_inpress/refs/heads/main/cldf/summary.trees?token=GHSAT0AAAAAACVQEUVFLA644VO6A2VDHQC4ZYEWJKQ")
+
+tng_languages = read.csv("https://raw.githubusercontent.com/phlorest/greenhill_inpress/refs/heads/main/cldf/languages.csv?token=GHSAT0AAAAAACVQEUVFAUYKHVFWGUJB3IOAZYEWJUA")
+
+# remove duplicates for merging
+drop.langs = c("enga_wapi") # from ID
+tng_languages = tng_languages %>% filter(!(ID %in% drop.langs))
+tng_tree = drop.tip(tng_tree, "enga_wapi")
+
+glottolog = read.csv("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/languages.csv")
+
+## N and M metadata
+# mcct_tree object used from earlier
+metadata$ISO = str_extract(metadata$interview_language, "(?<=\\[)[a-z][^\\]\\[]*(?=])")
+metadata_gl = left_join(metadata, glottolog[,c("Glottocode", "ISO639P3code", "Family_ID",
+                                                "Latitude", "Longitude")], 
+                       by = c("ISO" = "ISO639P3code"))
+
+metadata_gl = left_join(metadata_gl, tng_languages[,c("ID", "Name", "Glottocode")], 
+                       by = c("Glottocode"), suffix = c("", ".phy"))
+
+
+language_distance = cophenetic.phylo(tng_tree)
+dimnames(language_distance) = 
+  list(tng_languages$Glottocode[match(tng_languages$ID,
+                                         rownames(language_distance))],
+       tng_languages$Glottocode[match(tng_languages$ID,
+                                         colnames(language_distance))])
+
+# geographic distance
+geographic_distance = geosphere::distm(
+  x = metadata_gl[,c("longitude_hybrid", "latitude_hybrid")]) / 1000
+dimnames(geographic_distance) = list(metadata_gl$PhyID,
+                                     metadata_gl$PhyID)
+
+genetic_distance = cophenetic.phylo(mcct_tree)
+genetic_distance[upper.tri(genetic_distance)] = NA
+genetic_distance = reshape2::melt(genetic_distance, na.rm = TRUE)
+colnames(genetic_distance) = c("Taxa1", "Taxa2", "genetic_distance")
+genetic_distance$Language1 = metadata_gl$Glottocode[
+  match(genetic_distance$Taxa1, metadata_gl$PhyID)]
+genetic_distance$Language2 = metadata_gl$Glottocode[
+  match(genetic_distance$Taxa2, metadata_gl$PhyID)]
+genetic_distance$language_distance = NA
+genetic_distance$geographic_distance = NA
+
+for(i in 1:nrow(genetic_distance)){
+  t1 = genetic_distance$Language1[i] %in% colnames(language_distance) # test1
+  t2 = genetic_distance$Language2[i] %in% colnames(language_distance) # test2
+  if(t1 & t2){
+    genetic_distance$language_distance[i] = 
+    language_distance[
+      genetic_distance$Language1[i],
+      genetic_distance$Language2[i]
+    ]
+    genetic_distance$geographic_distance[i] = 
+    geographic_distance[
+      as.character(genetic_distance$Taxa1[i]),
+      as.character(genetic_distance$Taxa2[i])
+    ]
+  } else {
+    genetic_distance$language_distance[i] = NA
+  }
+}
+
+genetic_distance$same_langauge = genetic_distance$Language1 == genetic_distance$Language2
+
+ggplot(genetic_distance, aes(x = genetic_distance, y = geographic_distance, 
+                             col = same_langauge, size = language_distance)) + 
+  geom_jitter()
+
+ggplot(genetic_distance, aes(x = genetic_distance, y = language_distance, 
+                             col = same_langauge)) + 
+  geom_jitter()
+
+
+```
+
+```{r}
+library(INLA)
+
+genetic_vcv = ape::vcv(mcct_tree)
+genetic_vcv <- genetic_vcv/max(genetic_vcv) 
+genetic_vcv <- genetic_vcv / exp(determinant(genetic_vcv)$modulus[1] / nrow(genetic_vcv))
+
+pcprior <- list(prec = list(prior="pc.prec", param = c(0.36, 0.1)))
+
+gen_model <- inla(
+  TNG_Branch ~ f(
+    PhyID,
+    model = "generic0",
+    Cmatrix = genetic_vcv,
+    constr = TRUE,
+    hyper = pcprior
+  ),
+  data = metadata
+)
+```
