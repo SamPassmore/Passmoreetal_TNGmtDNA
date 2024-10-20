@@ -1,0 +1,274 @@
+---
+title: "Main Text"
+author: "Sam Passmore"
+format: pdf
+editor: visual
+bibliography: references.bib
+
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(ape)
+library(ggplot2)
+library(adephylo)
+
+```
+
+## Notes
+
+Tran-New Guinea expansion hypothesis
+
+-   Demic vs Cultural diffusion
+
+<!-- -->
+
+-   Linguistics and genetics are both interested in population expansions,
+
+-   There are broad associations between linguistic and genetic expansions (Cavalli-Sforza)
+
+-   But it is not always clear that geneticists and linguistics are talking about the same process
+
+    -   E.g. vanuatu was thought to be only austronesian until recent genetics suggested otherwise
+
+    -   Austronesias are categorised at B4a haplogroup in genetics, but many non-B4a individuals have spoken Austronesian languages for long periods of time. (maybe that doesnt matter)
+
+-   This paper will look at whether the expansion of the Trans-New Guinea hypotheses
+
+    -   Like many areas of expansion, Papuans are both a genetic and linguistic category, that don't necessarily neatly map onto each other. (in fact it is likely that they dont).
+
+<!-- -->
+
+-   Is this a demographic and linguistic expansion?
+
+    -   Only linguistic or only demographic?
+
+    -   Is it driven by particular sub-groups of TNG?
+
+-   Papuan is seperately a genetic and linguistic category, categories that don't overlap.
+
+    ## Points of Difference
+
+    -   Previous work has shown a strong correlation between linguistic and genetic populations within the Trans-New Guinea family, with particular focus on Kuru affected populations
+
+        -   Li et al (2020)
+
+        -   Quinn et al (2024)
+
+    -   This projects improves on these works in two ways
+
+        -   Assess the temporal structuring of linguistic and genetic relationships
+
+        -   Attempts to parse the relative importance of linguistic and geographic structuring over time
+
+            -   I.e. Can we say that linguistic / cultural affiliation is
+
+Schapper (2017)
+
+-   New Guinea & Trans-New Guinea as the centre of plant domestication - certainly in the Melanesian region.
+
+-   Domination of the Trans-New Guinea language group - in number and geography
+
+-   Centrality of Sugarcane and Banana in the farming expansion of trans-new guinea
+
+    -   Botanically versitile - grown across a large range
+
+-   Current linguistic understanding is that began as a family in the Eastern highlands due to the concentration of sub-groups.
+
+    -   The family then moves eastward into Milne bay and westward towards Indonesia as far as Timor Leste and the Timor-Alor-Pantar languages
+
+-   Linguistic temporal limits at 12,000 - 8,000 BP (Rankin 2008: 207-208) \[find\]
+
+-   Archeaological speculation looks at 6,000 to 10,000BP for the dating of the start of the family, based on the finding of marsupial bones (known to be transported by humans) around 3000 years ago in Timor Leste.
+
+-   Origin of agriculture in the Kuk Swamp in the Waghi valley from 10,000BP (Denham, 2003)
+
+    -   Sugarcane cultivation from 6,900-6,400BP (Denham 2004)
+
+    -   But difficult to differentiate between vegeculture (not agriculture per se) and seed propogations and toiling - due to poor soil conditions.
+
+-   Taro has unlikely origins within TNG and the Kuk Swamp.
+
+    -   Pollen (Haberle 1995) and starch residue (Loy, Sprigss, Wickler 1992, Denham 2003)
+
+        -   Ahmed (2014) suggested domestication likely occered west of the Wallace line.
+
+        -   Kuk swamp a primitive-stlye domestication?
+
+    -   An Agricultural package for Trans-New Guinea: Sugarcane and Banana
+
+        -   Stronger than the case of Taro
+
+        -   (what about sago?)
+
+Li et al (2020)
+
+-   Strong differentiation genetic differentiation corresponding to linguistic a geographic isolation.
+
+    -   Lower gene flow between languages families than within - imposed by patrilocal language ties.
+
+        -   Kentai speakers (of the Kainatu family) are more closely relaed to Anga speakers.
+
+-   Significant relationship between language family and mitocondrial diversity.
+
+-   Kuru epidemic likely weakened genetic isolation between Kuru affected groups
+
+    -   North Fore, South Fore, Gimi, Kanite, Usarufa, Awiyaana
+
+    -   
+
+Quinn et al 2024
+
+-   "The correlation between linguistic groupings and geographical regions makes it difficult to disentangle the relative role of these two factors".
+
+# Main Text
+
+The repeated invention of agriculture was a crucial cultural development in human evolution, creating unrivaled population growth, and the expansion of language families. The connection between demographic migration with cultural innovations of agriculture naturally point to the correlated movement of culture and genes, which has garnered some statistical support on both global (Cavalli-Sforza), and local scales (Bantu). Closer inspection, however, reveals that the correlation between linguistic, and genetics expansion is complex (Diamond & Bellwood 2002, Stoneking et al. 2022).
+
+Typically, there are two major models of dispersal following the invention of agriculture. First is demic diffusion, where agriculture arises in one group, driving population growth, leading to the divergence of that population into smaller groups, which consequantially causes the divergence of languages through a process of drift (ref) or possibly social selection (Nettle, 1999). The alternative, cultural diffusion, sees agricultural practices being adopting between groups, without the patterned spread of genes. These over simplified models exist alongside complications: the partial integration of genetic groups, language shift amongst
+
+New Guinea is home to around YY languages, and is the densest collection of languages in the world. A significant portion of those languages are linked, with varying degrees of confidence, to the Trans-New Guinea (TNG) family. The spread of which is routinely linked to the invention and adoption of agriculture, and the subsequent migration of people alongside significant population increases (Pawley 2005, Schapper 2017, Bellwood 2023).
+
+Evidence of agricultural activity in New Guinea purportedly beings 10,000 years ago in the Kuk Swamp, found in the Western Highlands province of modern-day Papua New Guinea (Denham). Genetic evidence shows that effective population sizes take off in Southern Highlands, Chimbu, and Madang, around 10,000 years ago (Bergstrom, 2017). This Western end of the New Guinea Central Corridella, where the Kuk Swamp is also located, is also home to the deepest clades of TNG languages, the largest languages family of New Guinea, and therefore the most likely candidate for the families origin (Pawley, XXX; Schapper, 2017). These basic facts leave a tantilizingly simple conclusion that agriculture was the catalyst for the co-evolution of demographic and linguistic expansion approximately 10kya. However, since dating the origin of TNG, is a complex task - due to a combination of theoretical constraints, understudied languages, and an ever encroaching threat of language endangerment - support for this co-evolutionary process is largely circumstantial\<better word than this\>.
+
+Dating langauge histories is a contentious theoretical issue within linguistics, with upper limits of reconstruction ranging from XX to YY years. \[why\].
+
+Quantitatively examining a causal relationship between genes and language is a complex statistical task due to the phyiscal constraints of geography. Isolation by distance (IBD) is the term used to describe the correlation between genetic distance and geographic distance. Simply, the further two people are away from each other, the less genetic material they are likely to share and the more distant thier most recent common ancestor is. This pattern is also generally true for languages - the further two languages are away, the less likely they are to share a linguistic origin. When examining the correlation of genes and langauges, we then must parse out the possibility that this relationship isn't due to the underlying drift of genes and languages.
+
+In this paper we expand on the gene-language heritage models developed in @lansing2017, to account for the likelihood of shared traits due to distance, as well as incorporating phylogenetic uncertainty. Using a sample of YY mtDNA samples from Papuan individuals, we construct a phylogeny of the genetic history of the Papua New Guinea (Brucato). We then determine how well langauge affiliation
+
+-   
+
+The coevolutionary relationship of language and genes in New Guinea is complicated by the rich cultural history of the region. New Guinea is the most linguistically diverse region of the world, home to approximately XXX languages, the largest family of these being the TNG family. The extent and maintenance of linguistic diversity has been attributed to a myriad of social, demographic, and environmental factors. The inhabitants of New Guinea are extraordinarily multilingual, possible a result of the complex marital exchange systems between linguistic groups.
+
+Genetic evidence points to numerous waves of immigration into the island, each likely bringing their own cultural and linguistic heritage, contributing to the diversity. The constant movement of people around the island is coupled with ethnographic evidence of extensive
+
+The Island is also rugged, particularly the areas interest for TNG expansion
+
+Whether a date for the origin or branches of TNG languages can be achieved is currently unknown due a combination of theoretical debate, many TNG languages being understudied, and the ever encroaching threat of language endangerment. Nevertheless,
+
+The cultural history of New Guinea adds significant complications to the correlation of languages and genes amongst Trans-New Guinea speakers. Rampant multilingualism, opaque boundaries between groups, continual waves of immigration, and persistent group extinction, and forced migration are but a few of the forces shaping the inter-woven history of New Guinean groups. Disease has disrupted the co-evolution of genes and language, specifically, the 1958-59 epidemic of the prion disease *kuru*, which, sadly, resulted in the death of a significant portion of women in Fore-speaking communities of the Eastern Highlands, and their surrounds [@quinn2024; @liu2020]. Communities with high female mortality were then required to reach beyond existing wife-exchange networks to continue to reproduce, in turn removing the correlation between linguistic and genetic diversity that existed outside the communities affected by Kuru [@li2020].
+
+The difficulty in dating languages, in general and at this time depth, means that we cannot
+
+, with significant evidence of Sugarcane cultivation from 6,900-6,400BP
+
+Although linguistics disagree on our ability to date linguistic histories, there
+
+"Currents of Language' Sapir
+
+P1: The Trans-New Guinea hypothesis: Drawing together the linguistic and genetic story
+
+-   Around 10ky ago, there was a burst of genetic diversification and increase of effective populations size in the New Guinea Highlands.
+
+    -   This coincides with early evidence of agricultural activity in the Kuk Swamp around the same time (10,000 ky ago), with evidence of increasing complexity in agricultural practice at 6.9ky ago and 4.3ky ago.
+
+    -   As well as being the tail end of the last glacial maximum.
+
+-   This area is currently also home to the highest concentration of languages from the Trans-New Guinea family, the largest language family in New Guinea derived with varying levels of comparative agreement (Evans et al In Press).
+
+    -   Although dating of language histories is a contentious topic, it is generally agreed that the new Guinea highlands are also home of the Trans-New Guinea family, and that it is likely the langauge family diversified concurrently with the rise in populations in the region around 10k years ago.
+
+-   Existing research has shown a contemporaneous relationship between language phylum affiliation and genetic diversity, with a particular focus on the effect of the Kuru epidemic during the 50s, possibly as early as the 1910s, on the gene-language relationship in the region.
+
+P2: Existing Genetic evidence
+
+-   Including the influence of Kuru on genetic diversity
+
+P3: Existing Linguistic evidence
+
+P4: Contemporaneous correlations of language and genetic diversity
+
+P5: This paper will test the likelihood of demic vs cultural diffusion, with a focus on linguistic categorisation of genetics diversity
+
+1.  Is there signal of demic diffusion in Trans-New Guinea languages in the genetic diversity
+    1.  If Trans-New Guinea is a demic expansion, then we should see a strong correlation between genes and language grouping.
+        1.  Only include "Papuans" i.e. no Austronesian Haplogroups.
+        2.  Do include all language groupings.
+        3.  We should expect that TNG speakers cluster more closely that non-TNG speakers
+            1.  Is this relationship stronger than random?
+            2.  Is this relationship stronger than IBD?
+        4.  DATA:
+            1.  Metadata subset to include TNG and Non-TNG speakers.
+            2.  Phylogeny pruned to only include Papuan DNA
+            3.  
+2.  The genetic distinctions between South/West, Angan, and Eastern/Simbu highland groups suggests that either agriculture was followed by extreme isolation, bottlenecks, and or drift - or that there was no demographic expansion for TNG.
+    1.  It is unlikely that all groups of TNG followed the same course (i.e. The Kuru epidemic had a significant impact on the gene-language correlation) and it could be that some groups expanded and others did not
+        1.  What is the the cluster of genetic relationships within TNG Clades
+            1.  Is this relationship stronger than random?
+            2.  Is this relationship stronger than IBD?
+
+# Materials & Methods
+
+## Samples and Ethics
+
+Of the 561 individuals sampled in this study, 512 samples are taken from existing work, and 49 new samples collected from around Mount Wilhelm area (See Table SX).
+
+The 49 new samples were taken from the Mount Whilem area. \<Ethic statement from Francois/Nicolas\>
+
+For existing genetic samples, we restricted our search criteria to mtDNA samples that were taken from mainland New Guinea, and were not associated with the Austronesian expansion (i.e. individuals with a B4a1 haplotype). This produced a sample of 512 samples from existing work.
+
+### Mitochondrial sequence generation of new samples
+
+\<talk to Francois/Nicolas about new samples from Mt Whilem(?)\>
+
+### Linguistic Metadata
+
+Of the 561 individuals who provided genetic samples, 256 provide metadata on their primary spoken language, including all new samples. 45 of the 49 newly sequences individuals provided their primary language(s). 44 speak Kuman, which is a Chimbu-Wahgi language, a clade within the Trans-New Guinea family. All individuals parents (mother and father) also spoke Kuman, with the exception of three mother's who spoke Asaro'o, Gende, and North Wahgi. These are also all TNG languages.
+
+Across the complete sample, 212 individuals speak Trans-New Guinea Languages, and 62 do not. The 212 TNG speakers are split across eight different branches within the family. The majority speak Kainantu-Goroka languages (n = 87), followed by Chimbu-Wahgi languages (45), Angan (38), Bosavi (20), Enga-Kewa-Huli (18), Madang (2), Ok-Oksapmin (1), and Mailuan (1). As mentioned, the classifications of languages within TNG is not universally agreed, however, all these sub-families are uncontroversial in their status as TNG language clades at the time of writing \[EvansFedden, Greenhill, Dryer 2022\]. Mailuan is perhaps the exception with one speaker of Magi \[mgu\], for which there is mixed evidence of TNG membership but leaning towards inclusion rather than exclusion. We include it here as TNG.
+
+Of the 62 non-TNG speakers, 18 listed Tok Pisin as their primary language, a Pacific Creole languages rapidly becoming the lingua franca of PNG. 11 individuals (8 female, 3 males) listed Austronesian languages as their primary language, despite not showing Austronesian genetic ancestry, and is indicative of the collaborative relationships between the existing Papuan groups and more recent Austronesians arrivals elsewhere in the Pacific [@lipson2020, @lipson2018, @posth2018]. Nine of the 11 were sampled from the south-east tip of PNG, across the Oro, Central, National Capital, Morobe, and Milne Bay provinces. The remainder of non-TNG speakers in our sample come from a range of language families across PNG. Eight speakers of Arafundi langauges (Tapei \[afp\]: 7; ), five Lower-Sepik speakers (all Tabriak \[tzx\]); three Ndu speakers (Boikin \[bzf\]), two speakers of the isolate langauge, Wiru \[wiu\], and one speaker from the Sepik (Kwoma \[kmo\]), Eleman (Orokolo \[oro\]), and South Bougainville (Siwai \[siw\]) families.
+
+::: callout-caution
+There are 12 individuals who listed their langauge as "Baining", and according to the metadata were sampled in the Highlands. Baining is a language family found in East New Britain. Is this a mistake?
+:::
+
+## Phylogeny
+
+We use BEAST v2.7.4 to infer the genealogical relationships between our set of 561 mtDNA. We use the BEAST package bModeltest to assess the most appropriate Substitution model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model.
+
+We use use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model, at multiple loci [@heled2008]. The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of historic changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate. We adjust the factor rate of the tree prior to 0.5, and change the population prior mean to an improper prior of 1/x, as suggested in @heled2008. We use a strict clock mutation. We determine mtDNA mutations rate of 2.4065 x 10^-8^ by taking the mean value from studies calibrating the human mitochondrial clock [@rieux2014; @fu2013].
+
+In addition we imposed tiered monophyletic groupings for the M and N haplogroups, and then for E and Q haplogroups the within the M haplogroup and P within the N haplogroup.
+
+The MCMC chain was run for X iterations, sampling every Y, resulting in a posterior sample of Z, after a Y% burnin period. All parameters showed effective samples sizes greater than 200, as per XX. We run the model twice to confirm convergence to the same values.
+
+## Estimating the heritage of traits
+
+To estimate the 'channels of language', we calculate the probability of two individuals sharing a language within a genetic clade, across the phylogenetic history. This calculation follows from @lansing2017 and comes in the form:
+
+$$
+P(i_l,j_l)|i_{g(t)}, j_{g(t)}) = \frac{P(i_l, j_l \bigcap i_{g(t)}, j_{g(t)})}{P(i_{g(t)}, j_{g(t)}} = \frac{\sum_{g=1}^{c_t}(\sum_{i,j\neq i}1_{cos(l_ig, l_jg) > 0})}{\sum_{g=1}^{c_t}n_g(n_g - 1) / 2}
+$$
+
+$c_t$ is the number of genetic clades at any point in history, for t generations. We assume 25 year generation times. $l_{i_g}$ and $l_{j_g}$ are the languages or language families spoken by individuals within genetic clade $g$. $1_{cos(l_{i_g}, l_{i_g}) > 0}$ is 1 if the ith and jth individual share a language, and zero otherwise. $n_g$ is the number of individuals in $g$. We perform this calculation across a posterior of 1,000 trees.
+
+Following @lansing2017, we compare this calculation to a permuted trait, which stands as a null hypothesis of the linguistic channels seen in the genetics. We additionally add what we think is a more robust alternative hypothesis is isolation-by-distance. To incorporate the probability of shared genetic history as a function of distance, we calculate Tobler's hiking distance between the location of all genetic samples, using the hole-filled CGIAR-SRTM (90 m resolution) elevation map, from the geodata package [@hijmans2024]. Hiking distance is discretized into three categories: within 24 hours hiking, within 12 hours, and within 6 hours. We then calculate the numerator of Eq. 1 on four conditions: The sum of pairs of individuals that share a language and are within a distance; the sum of pairs that share a language, but are not within a distance; the sum of pairss that are within a distance, but do not share a language; and finally, the sum of pairs who do not share a language nor are they within a distance.
+
+We test the gene-language correlations at two levels of linguistic analysis: a binary trait indicating whether a language is a Trans-New Guinea langauge or not, and after subsetting to individuals who speak TNG languages, the linguistic clade from which that language is found. The precise membership of languages to the broader TNG family is not widely agreed [@schapper2017], but our sample only contains speakers from uncontroversial language clades (See Materials & Methods for details).
+
+Data and code for this analysis can be found at XXX. Functions for calculating the phylogenetic heritage of traits are held in the package `traitheritage`, which can be found at `github.com/SamPassmore/traitheritage`.
+
+# Results
+
+## Summary of Genetic results
+
+The 49 new mtDNA samples were taken from Mount Whilem, Chimbu Province. The majority of individuals were born in this province (41; 87%), with others migrating from Jiwaka (3), Highlands (1), Western Province (1), and one from the National Capital Province. All of these individuals belonged to haplogroups already observed in this region of New Guinea P (37; 72%) and Q (14; 27%).
+
+Across the entire sample, there is no strong relationship between higher haplogroups. TNG speaking populations contain mostly P and Q haplogroups, all showing approximately half of each (See supplementary table X).
+
+## Gene-language correlations
+
+```{r}
+#| cap-location: bottom
+
+mcct_tree = read.nexus("NCI/20240910_CBESbModelTest_ALL/full_model-all.mcct.trees") 
+mcct_depth = mean(adephylo::distRoot(mcct_tree))
+
+tng_results = read.csv("NCI/20240917_RAll/results/")
+
+```
