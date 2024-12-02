@@ -1,8 +1,6 @@
 ## Trait Heritage analysis
 library(profvis) #uses utils::Rprof
 gc()
-p3 = profvis({
-
 suppressPackageStartupMessages({
   # Analysis and timing packages
   library(traitheritage)
@@ -222,5 +220,4 @@ write.csv(distance_heritage_20, paste0(base_name, "_distance20.csv"), row.names 
 rm(distance_heritage_20)
 gc()
 
-})
 beepr::beep(8)

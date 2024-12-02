@@ -1,12 +1,12 @@
 # helper script for Supplemantary materials
 
 summarizer = function(posterior){
-  posterior$generation_time = as.numeric(gsub("g_", replacement = "", posterior$generation))
+  posterior$generation = as.numeric(gsub("g_", replacement = "", posterior$generation))
   # posterior$clade_probability = posterior$numerator / posterior$numerator
   posterior %>%
     filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-    group_by(generation_time) %>%
-    summarise(mean.prob = mean(clade_probability, na.rm = TRUE),
+    group_by(generation) %>%
+    summarise(mean_clade_probability = mean(clade_probability, na.rm = TRUE),
               ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
               n_matches = sum(numerator_sum)) %>% 
     tidyr::unpack(ci_hdi)
@@ -15,43 +15,48 @@ summarizer = function(posterior){
 ## Tree + Line Plots
 tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variable){
   variable <- ensym(variable)
-  p_tree = ggtree(tree_data) + 
-    geom_tippoint(aes(col = factor(!!variable)), shape = "\u2588", size = 1) +
-    scale_y_continuous(breaks = c(10000, 20000, 30000, 40000),
-                       labels = c("10k", "20k", "30k", "40k")) +
+  p_tree = ggtree(tree_data, size = 0.05) + 
+    # geom_tippoint(aes(col = factor(!!variable)), shape = "\u2588", size = 12) +
+    geom_tippoint(aes(col = factor(!!variable)), shape = "I", size = 4) +
+    scale_y_continuous(breaks = c(10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000),
+                       labels = c("10k", "20k", "30k", "40k", "50k", "60k", "70k", "80k")) +
+    scale_fill_discrete(name = NULL) + 
     layout_dendrogram() + 
     theme(legend.position = "bottom", 
           axis.ticks.y = element_line(),
           axis.line.y = element_line(),
-          axis.text.y = element_text())
+          axis.text.y = element_text(),
+          panel.grid.major = element_line())
   
   # match scales in each plot
   x_range = layer_scales(p_tree)$x$range$range
   
   p_prob = ggplot(data = posterior_summary,
-                  aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob)) +
+                  aes(ymin = CI_low, ymax = CI_high, x = generation, y = mean_clade_probability)) +
     geom_ribbon(fill = "lightblue", alpha = 0.5) +
     geom_line(col = "blue") +
     geom_ribbon(data = permuted_summary,
-                aes(ymin = CI_low, ymax = CI_high, x = generation_time, y = mean.prob),
+                aes(ymin = CI_low, ymax = CI_high, x = generation, y = mean_clade_probability),
                 fill = "lightgreen", alpha = 0.5) +
     geom_line(data = permuted_summary,
-              aes(x = generation_time, y = mean.prob),
+              aes(x = generation, y = mean_clade_probability),
               col = "forestgreen") +
     ylim(c(0, 1)) +
     xlim(x_range) + ## max tree height (or max p_tree?)
     coord_flip() +
     xlab("") + 
     ylab("") + 
-    # scale_x_continuous(expand = c(0, 0)) + 
-    # scale_y_continuous(expand = c(0, 0)) + 
-    theme_classic() + 
-    theme(panel.grid.major = element_blank(), 
+    scale_fill_discrete(name = NULL) + 
+    theme_classic(base_size = 10) + 
+    theme(panel.grid.major.y = element_line(), 
           panel.grid.minor = element_blank(),
-          panel.background = element_rect(colour = "black", linewidth=0.5))
+          panel.background = element_rect(colour = "black", linewidth=0.5),
+          axis.text.y = element_blank(),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
   
   plot = p_tree + p_prob + 
-    plot_layout(widths = c(1, 0.25))
+    plot_layout(guides = "collect", widths = c(1, 0.25)) &
+    theme(legend.position = "bottom", legend.title = element_blank())
   
   return(plot)
 }
@@ -62,33 +67,35 @@ Dist_Plot = function(posterior_summary, distance_summary, facet_names){
          aes(
            ymin = CI_low,
            ymax = CI_high,
-           x = generation_time,
-           y = mean.prob
+           x = generation,
+           y = mean_clade_probability
          )) +
     geom_ribbon(fill = "lightgreen", alpha = 0.5) +
     geom_line(data = distance_summary,
-              aes(x = generation_time, y = mean.prob),
+              aes(x = generation, y = mean_clade_probability),
               col = "forestgreen") +
-    facet_grid(~ distance, labeller = as_labeller(facet_names)) +
+    facet_wrap(~ distance, labeller = as_labeller(facet_names), ncol = 2) +
     geom_ribbon(
       data = posterior_summary,
       aes(
         ymin = CI_low,
         ymax = CI_high,
-        x = generation_time,
-        y = mean.prob
+        x = generation,
+        y = mean_clade_probability
       ),
       fill = "lightblue",
       alpha = 0.5
     ) + geom_line(data = posterior_summary,
-                  aes(x = generation_time,
-                      y = mean.prob),
+                  aes(x = generation,
+                      y = mean_clade_probability),
                   col = "blue") +
     scale_x_reverse(breaks = c(0, 10000, 20000, 30000, 40000, 50000, 60000, 70000),
                     labels = c("0", "10k", "20k", "30k", "40k", "50k", "60k", "70k")) + 
     xlab("Time (years)") + 
     ylab("Probability") + 
-    theme_classic()
+    theme_classic()  + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
+    
 }
 
 # Posterior average

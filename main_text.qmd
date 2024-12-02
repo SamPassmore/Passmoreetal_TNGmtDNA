@@ -15,6 +15,14 @@ execute:
 library(ape)
 library(ggplot2)
 library(adephylo)
+library(data.table)
+library(broom)
+library(boot)
+library(dplyr)
+library(bayestestR)
+library(ggtree)
+library(treeio)
+library(patchwork)
 
 ```
 
@@ -263,12 +271,174 @@ Across the entire sample, there is no strong relationship between higher haplogr
 
 ## Gene-language correlations
 
-```{r}
+Binary results show that TNG speakers show a distinct genetic signal to speakers of other language family groups up to XX years ago. This time is identified as the first 25-year generation where there is no overlap between the permuted and phylogenetic 95% confidence intervals. There is also no discernible difference between TNG and Non-TNG speakers until X years ago. This is because there are only a few individuals who have common ancestors within this time-depth.
+
+```{r TNG}
 #| cap-location: bottom
+
+source("analysis/helper.R")
+
+TNG_metadata = read.csv("data/TNGData.csv")
 
 mcct_tree = read.nexus("NCI/20240910_CBESbModelTest_ALL/full_model-all.mcct.trees") 
 mcct_depth = mean(adephylo::distRoot(mcct_tree))
 
-tng_results = read.csv("NCI/20240917_RAll/results/")
+tng_results = read.csv("results/TNG_full_model-all.noburnin_probability_summary.csv")
+tng_permutations = read.csv("results/TNG_full_model-all.noburnin_permutedsummary.csv")
 
+tng_summary = summarizer(tng_results)
+tng_summary_p = summarizer(tng_permutations)
+
+posterior_summary = tng_summary[tng_summary$generation < mcct_depth,]
+permuted_summary = tng_summary_p[tng_summary_p$generation < mcct_depth,]
+
+tng_tree = keep.tip(mcct_tree, TNG_metadata$PhyID[!is.na(TNG_metadata$TNG)])
+tree_data = full_join(tng_tree, TNG_metadata, by = c(label = "PhyID"))
+
+tree_line_plot(tree_data, posterior_summary, permuted_summary, variable = "TNG")
+
+```
+
+For the Within-TNG results, we have the cumulative probability by branch, which indicates which sub-groups of TNG are driving the overall gene-language correlation.
+
+```{r}
+source("analysis/helper.R")
+
+TNG_metadata = read.csv("data/TNGBranchData.csv")
+
+tng_results = read.csv("results/TNG_Branch_full_model-all.noburnin_probability_summary.csv")
+tng_permutations = read.csv("results/TNG_Branch_full_model-all.noburnin_permutedsummary.csv")
+
+tng_summary = summarizer(tng_results)
+tng_summary_p = summarizer(tng_permutations)
+
+posterior_summary = tng_summary[tng_summary$generation < mcct_depth,]
+permuted_summary = tng_summary_p[tng_summary_p$generation < mcct_depth,]
+
+tng_tree = keep.tip(mcct_tree, TNG_metadata$PhyID[!is.na(TNG_metadata$TNG)])
+tree_data = full_join(tng_tree, TNG_metadata, by = c(label = "PhyID"))
+
+tree_line_plot(tree_data, posterior_summary, permuted_summary, variable = "TNG_Branch")
+
+```
+
+```{r}
+
+tng_branch = read.csv("results/TNG_Branch_full_model-all.noburnin_probability_bytrait.csv")
+tb_permuted = read.csv("results/TNG_Branch_full_model-all.noburnin_permutedbytrait.csv")
+
+tngbranch_summary = tng_branch %>%
+  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+  dplyr::filter(generation <= mcct_depth) %>%
+  group_by(generation, state) %>%
+  summarise(
+    mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+    ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
+    # 95% credible interval
+    n_matches = sum(numerator_sum)
+  ) %>%
+  tidyr::unpack(ci_hdi) %>% 
+  dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan"))
+
+ggplot() + 
+  geom_area(data = tngbranch_summary,
+       aes(x = generation, y = mean_clade_probability, fill = state), colour = "black") + 
+  xlim(0, 20000) + 
+  xlab("") + 
+  ylab("") + 
+  theme_classic() + 
+  ylim(c(0, 1)) +
+  scale_fill_discrete(name = element_blank()) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", linewidth=0.5),
+        legend.position = "bottom") 
+
+```
+
+```{r}
+tbp_summary = tb_permuted %>%
+  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+  dplyr::filter(generation <= mcct_depth) %>%
+  group_by(generation, state) %>%
+  summarise(
+    mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+    ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
+    # 95% credible interval
+    n_matches = sum(numerator_sum)
+  ) %>%
+  tidyr::unpack(ci_hdi)
+
+## 
+kg = tngbranch_summary %>% 
+  filter(state == "Kainantu-Goroka")
+kg_p = tbp_summary %>% 
+  filter(state == "Kainantu-Goroka")
+
+kg_plot = ggplot(kg,
+                 aes(
+                   ymin = CI_low,
+                   ymax = CI_high,
+                   x = generation,
+                   y = mean_clade_probability
+                 )) +
+  geom_line(col = "blue") +
+  geom_ribbon(fill = "lightblue", alpha = 0.5) +
+  geom_ribbon(
+    data = kg_p,
+    aes(
+      ymin = CI_low,
+      ymax = CI_high,
+      x = generation,
+      y = mean_clade_probability
+    ),
+    fill = "lightgreen",
+    alpha = 0.5
+  ) +
+  geom_line(
+    data = kg_p,
+    aes(x = generation, y = mean_clade_probability),
+    col = "forestgreen"
+  ) + 
+  theme_minimal() + 
+  ylab("Probability") + xlab("Time") + 
+  xlim(c(0, 20000))
+
+ag = tngbranch_summary %>% 
+  filter(state == "Angan")
+ag_p = tbp_summary %>% 
+  filter(state == "Angan")
+
+ag_plot = ggplot(ag,
+                 aes(
+                   ymin = CI_low,
+                   ymax = CI_high,
+                   x = generation,
+                   y = mean_clade_probability
+                 )) +
+  geom_line(col = "blue") +
+  geom_ribbon(fill = "lightblue", alpha = 0.5) +
+  geom_ribbon(
+    data = ag_p,
+    aes(
+      ymin = CI_low,
+      ymax = CI_high,
+      x = generation,
+      y = mean_clade_probability
+    ),
+    fill = "lightgreen",
+    alpha = 0.5
+  ) +
+  geom_line(
+    data = ag_p,
+    aes(x = generation, y = mean_clade_probability),
+    col = "forestgreen"
+  ) + 
+  theme_minimal() + 
+  ylim(c(0 , 1)) + 
+  ylab("") + xlab("Time") + 
+  + 
+  xlim(c(0, 20000))
+
+kg_plot + ag_plot
 ```

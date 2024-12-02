@@ -417,10 +417,7 @@ TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
 write.csv(genetic_data, 'processed_data/genetic_samples.csv', row.names = FALSE, na = "")
 
 # Only mainland PNG data
-write.csv(TNG, "NCI/20240917_RAll/TNGData.csv")
-
-# Only TNG Speakers
-write.csv(TNG_Branch, "NCI/20240917_RAll/TNGBranchData.csv", row.names = FALSE)
+write.csv(TNG, "./data/TNGData.csv")
 
 # Write Genetic reference data
 gen_data = Biostrings::readDNAMultipleAlignment("processed_data/papua_completeset.fasta")
