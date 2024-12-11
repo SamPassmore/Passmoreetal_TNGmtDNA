@@ -18,7 +18,7 @@ suppressPackageStartupMessages({
 # rcrs reference genome
 rcrs = Biostrings::readDNAStringSet("data/rcrs.fasta")
 
-genetic_data = read.csv('processed_data/genetic_samples.csv')
+genetic_data = read.csv('processed_data/TNGData.csv')
 
 x = assert_that(length(unique(genetic_data$ID)) == nrow(genetic_data))
 
@@ -127,27 +127,9 @@ names(fasta_set) = str_replace_all(paste0(genetic_data$ID, "_", genetic_data$hap
 x = assert_that(length(unique(names(fasta_set))) == length(fasta_set))
 x = assert_that(all(unique(names(fasta_set)) %in% names(fasta_set)))
 
-## Split M and N Haplotypes
-fasta_set_m = fasta_set[genetic_data$haplogroup_MN == "M"]
-fasta_set_n = fasta_set[genetic_data$haplogroup_MN == "N"]
-
-## For each Haplotype set, add one out group from the other haplotype.
-
-# Outgroup for M is: HGDP00546
-fasta_set_m = c(fasta_set_m, fasta_set_n[1])
-
-# Outgroup for N is: HGDP00545
-fasta_set_n = c(fasta_set_n, fasta_set_m[1])
-
 ## Save fasta file
-# M Haplotype
-Biostrings::writeXStringSet(fasta_set_m, filepath = 'processed_data/papua_m.fasta')
-# ape::write.nexus.data(fasta_set_m, file = "processed_data/papua_m.nex")
-
-# N Haplotype
-Biostrings::writeXStringSet(fasta_set_n, filepath = 'processed_data/papua_n.fasta')
-# ape::write.nexus.data(fasta_set_n, file = "processed_data/papua_n.nex")
-
 # All data
-Biostrings::writeXStringSet(fasta_set, filepath = 'processed_data/papua_completeset.fasta')
+gen_subset = fasta_set[genetic_data$PhyID]
+
+Biostrings::writeXStringSet(fasta_set, filepath = 'processed_data/all_data.fasta')
 

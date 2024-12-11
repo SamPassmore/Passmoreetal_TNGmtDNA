@@ -113,3 +113,13 @@ posterior_aggregator = function(language_probability){
   
   return(language_probability_agg)
 }
+
+mainplot_prep = function(){
+  posterior = posterior[posterior$generation < mcct_depth,]
+  permutations = permutations[permutations$generation < mcct_depth,]
+
+  posterior_summary = summarizer(posterior)
+  permutation_summary_p = summarizer(permutations)
+  
+  list(posterior = posterior_summary, permutation = permutation_summary_p)
+}

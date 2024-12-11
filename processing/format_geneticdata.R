@@ -154,17 +154,109 @@ genetic_sheet3$interview_language[genetic_sheet3$interview_language == "Kuman/Pi
 
 ### Format Sheet 4 ####
 ## The fourth sheet we received from Francois is the Daru data. We are ignoring data from the Daru sampling.
+genetic_sheet4 = read_xlsx(data_file, sheet = 4, skip = 1, na = "NA")
+
+# remove the first row because it was only used for aesthetics
+genetic_sheet4 = genetic_sheet4[-1,]
+
+genetic_sheet4 = genetic_sheet4 %>%
+  dplyr::select(ID = "Num_Form",
+                interview_location = "Place_Sampling", # check these values are provinces
+                gender = "Gender",
+                village = "Place_Birth",
+                district = "District_Birth",
+                province = "Province_Birth",
+                longitude_ofsampling = "Longitude",
+                latitude_ofsampling = "Latitude",
+                altitude = "Elevation",
+                father_village = "F1_Place",
+                father_district = "F1_District",
+                father_province = "F1_Province",
+                father_tribe = "F1_Tribe",
+                father_clan = "F1_Clan",
+                father_longitude = "F1_Longitude",
+                father_latitude = "F1_Latitude",
+                father_altitude = "F1_Elevation",
+                mother_village = "M2_Place",
+                mother_district = "M2_District",
+                mother_province = "M2_Province",
+                mother_tribe = "M2_Tribe",
+                mother_clan = "M2_Clan",
+                mother_longitude = "M2_Longitude",
+                mother_latitude = "M2_Latitude",
+                mother_altitude = "M2_Elevation",
+                interview_language = "Language ind",
+                interview_languagefamily = "Language_Family",
+                father_language = "F1_Language_Glottolog",
+                father_languagefamily = "F1_LanguageFamily_Glottolog",
+                father_language_glottocode = "F1_LanguageCode_Glottolog",
+                mother_language = "M2_Language_Glottolog",
+                mother_language_glottocode = "M2_LanguageCode_Glottolog",
+                mother_languagefamily = "M2_LanguageFamily_Glottolog",
+                haplogroup = "Haplogroup",
+                mutations_fromRCRS = "Mutations relative to Rcrs")
+
+genetic_sheet4$ID = as.character(genetic_sheet4$ID)
+
+# Agob doesn't have an ISO code, so we use the Agob-Ende-Kawam ISO code
+genetic_sheet4[genetic_sheet4 == "Agob"] = "Agob [kit]"
+# Anta doesn't have an ISO code, so we use the Anta-Komna-Wara-Were-Kema ISO code
+genetic_sheet4[genetic_sheet4 == "Anta"] = "Anta [tci]"
+genetic_sheet4[genetic_sheet4 == "Arammba"] = "Arammba [stk]"
+genetic_sheet4[genetic_sheet4 == "Ende"] = "Ende [end]"
+# Metadata doesnt speciy what Kiwaian varity, but father speaks Southern Kiwai, so we label it this way
+genetic_sheet4[genetic_sheet4 == "English/Kiwai"] = "Kiwai [kjd]"
+# Gidra is an alternative name for Wipi on Glottolog
+genetic_sheet4[genetic_sheet4 == "Gidra"] = "Wipi [gdr]"
+genetic_sheet4[genetic_sheet4 == "Gizra"] = "Gizra [tof]"
+genetic_sheet4[genetic_sheet4 == "Gododala"] = "Gogodala [ggw]"
+genetic_sheet4[genetic_sheet4 == "Gogodala"] = "Gogodala [ggw]"
+# one person lists gogodala and agob. We pick the first since we will only allow on language per person
+genetic_sheet4[genetic_sheet4 == "Gogodala; Agob"] = "Gogodala [ggw]"
+# ISO code is for Idi-Taemae
+genetic_sheet4[genetic_sheet4 == "Idi"] = "Idi [idi]"
+genetic_sheet4[genetic_sheet4 == "Idi (Yidi)"] = "Idi [idi]"
+genetic_sheet4[genetic_sheet4 == "Idi / Taeme"] = "Idi [idi]"
+genetic_sheet4[genetic_sheet4 == "Idi / Taeme"] = "Idi [idi]"
+# Kawam doesn't have an ISO code, so we use the Agob-Ende-Kawam ISO code
+genetic_sheet4[genetic_sheet4 == "Kawam (Dukop)"] = "Kawam [kit]"
+# Not sure what this langauge is supposed to be
+genetic_sheet4[genetic_sheet4 == "Kiunum"] = NA
+## Assuming that Kiwai speakers are Southern Kiwai speakers
+genetic_sheet4[genetic_sheet4 == "Kiwai"] = "Kiwai [kjd]"
+genetic_sheet4[genetic_sheet4 == "KIwai"] = "Kiwai [kjd]"
+genetic_sheet4[genetic_sheet4 == "Kiwai, Southern"] = "Kiwai [kjd]"
+genetic_sheet4[genetic_sheet4 == "Kunja"] = ""
+# Magiam is an alternative name for Kanch on Glottolog
+genetic_sheet4[genetic_sheet4 == "Magiam"] = "Kánchá [pep]"
+genetic_sheet4[genetic_sheet4 == "Makayam"] = "Makayam [aup]"
+genetic_sheet4[genetic_sheet4 == "Nama"] = "Nama [nmx]"
+genetic_sheet4[genetic_sheet4 == "Náma"] = "Nama [nmx]"
+genetic_sheet4[genetic_sheet4 == "Nambo"] = "Nambo [ncm]"
+genetic_sheet4[genetic_sheet4 == "Nen"] = "Nen [nqn]"
+genetic_sheet4[genetic_sheet4 == "Nmbo"] = "Nambo [ncm]"
+genetic_sheet4[genetic_sheet4 == "Suki"] = "Suki [sui]"
+# Taeme doesnt have its own ISO code so we use Idi-Taeme
+genetic_sheet4[genetic_sheet4 == "Taeme"] = "Taeme [idi]"
+# Anta doesn't have an ISO code, so we use the Anta-Komna-Wara-Were-Kema ISO code
+genetic_sheet4[genetic_sheet4 == "Wara"] = "Wára [tci]"
+# Anta doesn't have an ISO code, so we use the Anta-Komna-Wara-Were-Kema ISO code
+genetic_sheet4[genetic_sheet4 == "Wára"] = "Wára [tci]"
+genetic_sheet4[genetic_sheet4 == "Wartha"] = "Warta Thuntai [gnt]"
 
 #### Testing data assumptions ####
 ## For each sheet ensure there are unique ids
 n_distinct(genetic_sheet1$ID) == nrow(genetic_sheet1)
 n_distinct(genetic_sheet2$ID) == nrow(genetic_sheet2)
 n_distinct(genetic_sheet3$ID) == nrow(genetic_sheet3)
+n_distinct(genetic_sheet4$ID) == nrow(genetic_sheet4)
 
 #### Bind rows ####
-genetic_data = bind_rows(genetic_sheet1, genetic_sheet2, genetic_sheet3)
+genetic_data = bind_rows(genetic_sheet1, genetic_sheet2, genetic_sheet3, genetic_sheet4)
 # missing language data should be an NA
 genetic_data$interview_language[genetic_data$interview_language == ""] = NA
+genetic_data$mother_language[genetic_data$mother_language == ""] = NA
+genetic_data$father_language[genetic_data$father_language == ""] = NA
 
 # Separately I collected the GPS coordinates of all Villages listed in the dataset. I merge that data in here
 village_coords = read.csv('data/metadata_villagedata.csv')
@@ -190,7 +282,6 @@ genetic_data$father_language[is.na(genetic_data$father_language)] =
 
 genetic_data$mother_language[is.na(genetic_data$mother_language)] = 
   genetic_data$maternal_language[is.na(genetic_data$mother_language)]
-
 
 #### More Tests ####
 # Make M and N haplotype identifier
@@ -269,6 +360,23 @@ genetic_data$interview_language[genetic_data$interview_language == "Gimi (Easter
 ## One langauges cannot be matched to a recorded language variety
 # Eyagu (1 person)
 
+#### Father's language
+## Simplify this note, but it is not clear what language Kora is. 
+genetic_data$father_language[genetic_data$father_language == "Likely Kora of the Chimbu area."] = "Kora"
+
+#### Mother's language
+genetic_data$mother_language[genetic_data$mother_language == "Asaro’o"] = "Asaro’o [mtv]"
+# Bel appears to be a Austronesian clade. Class this as missing
+genetic_data$mother_language[genetic_data$mother_language == "Bel"] = NA
+# As with individual speakers, it is unclear what language Eyagu is.
+genetic_data$mother_language[genetic_data$mother_language == "Eyagu ?"] = NA
+genetic_data$mother_language[genetic_data$mother_language == "Gende"] = "Gende [gaf]"
+## adding consistent labelling for Kuman
+genetic_data$mother_language[genetic_data$mother_language == "Kuman"] = "Kuman [kue]"
+## adding consistent labelling for North Wahgi
+genetic_data$mother_language[genetic_data$mother_language == "Wahgi, North"] = "Wahgi, North [whg]"
+
+
 ## One language is listed as TO EXCLUDE. We exclude it here
 genetic_data = genetic_data[!genetic_data$interview_language == "TO EXCLUDE",]
 
@@ -290,10 +398,19 @@ n_distinct(genetic_data$mutations_fromRCRS) == nrow(genetic_data)
 ## I have created a manual pairing of languages to language families / branches. 
 tng = read.csv('data/language_families.csv')
 
+## Adding Branch data
 genetic_data = left_join(genetic_data, tng, by = "interview_language")
+## Adding Branch data for father / mother
+genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "TNG_Branch")], 
+               by = c("father_language" = "interview_language"),
+               suffix = c("", ".father"))
+
+genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "TNG_Branch")], 
+               by = c("mother_language" = "interview_language"),
+               suffix = c("", ".mother"))
 
 #### Hybrid variables ####
-### These variables contain a mixutre of observed and inferred data. Details for their hybridisation are below
+### These variables contain a mixture of observed and inferred data. Details for their hybridisation are below
 
 # The location of the sample is taken from a mixture of sources. 
 # Some locations are taken as the location of sampling
@@ -302,74 +419,10 @@ genetic_data = left_join(genetic_data, tng, by = "interview_language")
 genetic_data$latitude_hybrid = coalesce(genetic_data$latitude_ofsampling, genetic_data$LATITUDE)
 genetic_data$longitude_hybrid = coalesce(genetic_data$longitude_ofsampling, genetic_data$LONGITUDE)
 
-#### Picking the right language ####
-## There are some genetic duplicates, of the duplicate we need to choose the individual with the most reliable metadata
-## That is, we should aim to not use the inferred language data
-dups = sum(duplicated(genetic_data$mutations_fromRCRS))
-
-genetic_data$mutations_sets = as.numeric(factor(genetic_data$mutations_fromRCRS))
-
-split_byset = split(genetic_data[,c("ID", "mutations_sets", "interview_language", "latitude_hybrid", "longitude_hybrid")], genetic_data$mutations_sets)
-idx = sapply(split_byset, nrow) > 1
-duplicates = do.call(rbind, split_byset[idx])
-
-write.csv(duplicates, "processed_data/genetic_duplicates.csv")
-
-dup_sets = sum(sapply(split_byset, nrow) > 1)
-
-cat("There are", dups, "individuals with duplicate mtDNA mutations that group in to", 
-    dup_sets, "distinct sets\n")
-
-mismatches = sapply(split_byset, function(x) length(unique(x$interview_language)))
-
-cat("Of the", dup_sets, "sets of duplicates", sum(mismatches > 1), "have mismatched language groupings\n")
-record = list()
-for(i in unique(genetic_data$mutations_sets)){
-  idx = which(genetic_data$mutations_sets == i)
-  set = genetic_data[idx,]
-  
-  # If no languages have linguistic data, then drop
-  if(all(is.na(set$interview_language))){
-    drop = idx
-    genetic_data = genetic_data[-drop,]
-    next
-    # set$interview_language = set$language_fromcoords
-    # If the inferred languages are not all the same, then pick one at random
-    # if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
-    #   drop = sample(idx, length(idx) - 1, replace = FALSE)
-    #   genetic_data = genetic_data[-drop,]
-    # }
-  }
-  
-  # If all duplicate genomes speak the same language, then take the first one
-  if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
-    drop = idx[-1]
-    genetic_data = genetic_data[-drop,]
-    next
-  }
-  
-  # If all languages are different, pick one at random
-  if(any(is.na(set$interview_language)) | !all(set$interview_language[1] == set$interview_language)){
-    drop = sample(idx, length(idx) - 1, replace = FALSE)
-    genetic_data = genetic_data[-drop,]
-    print("These people have identical genetic records but different languages")
-    record = append(record, list(set[,c("ID", "interview_language")]))
-    next
-  }
-  
-  # If there are duplicate genomes but only one unique language, drop the others
-  if(any(!is.na(set$interview_language)) & nrow(set) > 1){
-    drop = idx[!is.na(set$interview_language)] # remove individuals with missing language data
-    
-    l_sample = ifelse(length(drop) == 1, 1, length(drop) - 1)
-    drop = sample(drop, l_sample, replace = FALSE) # select langauge at random
-    genetic_data = genetic_data[-drop,]
-    next
-  }
-}
-
-nrow(genetic_data)
-n_distinct(genetic_data$mutations_fromRCRS) == nrow(genetic_data)
+## Add PhyID
+genetic_data = genetic_data %>% 
+  mutate(PhyID = paste0(ID, "_", haplogroup),
+       PhyID = gsub(" ", "", PhyID, fixed = TRUE))
 
 ## Merge and subset to TNG data
 drop_provinces = c("West New Britain", 
@@ -377,16 +430,17 @@ drop_provinces = c("West New Britain",
                    "East New Britain",
                    "New Ireland")
 
+# These individuals are identified as out of scope.
+drop_ids = c("AY289086", "AY289092", "AY289087",
+             "AY289084", "AY289088", "AY289091",
+             "AY289081", "AY289090", "AY289085",
+             "AY289082", "AY289079", "AY289078")
+
 TNG = genetic_data %>% 
   filter(!str_detect(haplogroup, "B4a")) %>% # remove austronesians Austronesian
   filter(!province %in% drop_provinces) %>% 
-  filter(!ID %in% duplicates$ID) %>% 
-  mutate(PhyID = paste0(ID, "_", haplogroup),
-         PhyID = gsub(" ", "", PhyID, fixed = TRUE))
-
-TNG_Branch = TNG %>% 
-  filter(TNG == 1)
-
+  filter(!ID %in% drop_ids) %>% 
+  filter(!is.na(interview_language)) 
 
 cat(sum(!is.na(TNG$interview_language)),
     "individuals provide language data, from a total of",
@@ -399,8 +453,76 @@ cat("We could infer the language for",
     "individuals, from a total of",
     nrow(TNG), "individuals. But we do not currently")
 
+#### Picking the right language ####
+## There are some genetic duplicates, of the duplicate we need to choose the individual with the most reliable metadata
+## That is, we should aim to not use the inferred language data
+dups = sum(duplicated(TNG$mutations_fromRCRS))
 
-## Identify Austronesian langauges
+TNG$mutations_sets = as.numeric(factor(TNG$mutations_fromRCRS))
+
+split_byset = split(TNG[,c("PhyID", "mutations_sets", "interview_language", "latitude_hybrid", "longitude_hybrid")], TNG$mutations_sets)
+idx = sapply(split_byset, nrow) > 1
+duplicates = do.call(rbind, split_byset[idx])
+
+write.csv(duplicates, "processed_data/genetic_duplicates.csv")
+
+dup_sets = sum(sapply(split_byset, nrow) > 1)
+
+cat("There are", dups, "individuals with duplicate mtDNA mutations that group in to",
+    dup_sets, "distinct sets\n")
+
+mismatches = sapply(split_byset, function(x) length(unique(x$interview_language)))
+
+cat("Of the", dup_sets, "sets of duplicates", sum(mismatches > 1), "have mismatched language groupings\n")
+record = list()
+for(i in unique(TNG$mutations_sets)){
+  idx = which(TNG$mutations_sets == i)
+  set = TNG[idx,]
+  
+  # If no languages have linguistic data, then drop
+  if(all(is.na(set$interview_language))){
+    drop = idx
+    TNG = TNG[-drop,]
+    next
+    # set$interview_language = set$language_fromcoords
+    # If the inferred languages are not all the same, then pick one at random
+    # if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
+    #   drop = sample(idx, length(idx) - 1, replace = FALSE)
+    #   genetic_data = genetic_data[-drop,]
+    # }
+  }
+  
+  # If all duplicate genomes speak the same language, then take the first one
+  if(length(unique(set$interview_language)) == 1 & nrow(set) > 1){
+    drop = idx[-1]
+    TNG = TNG[-drop,]
+    next
+  }
+  
+  # If all languages are different, pick one at random
+  if(any(is.na(set$interview_language)) | !all(set$interview_language[1] == set$interview_language)){
+    drop = sample(idx, length(idx) - 1, replace = FALSE)
+    TNG = TNG[-drop,]
+    print("These people have identical genetic records but different languages")
+    record = append(record, list(set[,c("ID", "interview_language")]))
+    next
+  }
+  
+  # If there are duplicate genomes but only one unique language, drop the others
+  if(any(!is.na(set$interview_language)) & nrow(set) > 1){
+    drop = idx[!is.na(set$interview_language)] # remove individuals with missing language data
+    
+    l_sample = ifelse(length(drop) == 1, 1, length(drop) - 1)
+    drop = sample(drop, l_sample, replace = FALSE) # select langauge at random
+    TNG = TNG[-drop,]
+    next
+  }
+}
+
+nrow(TNG)
+n_distinct(TNG$mutations_fromRCRS) == nrow(TNG)
+
+## Identify Austronesian languages
 TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
                                                  "Adzera [adz]",
                                                  "Kilivila [kij]",
@@ -411,17 +533,9 @@ TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
                                                  "Waima [rro]",
                                                  "Kuanua [ksd]")
 
-
 #### Write the raw data ####
 # All Formatted data
 write.csv(genetic_data, 'processed_data/genetic_samples.csv', row.names = FALSE, na = "")
 
 # Only mainland PNG data
-write.csv(TNG, "./data/TNGData.csv")
-
-# Write Genetic reference data
-gen_data = Biostrings::readDNAMultipleAlignment("processed_data/papua_completeset.fasta")
-# subset to those of interest
-gen_subset = gen_data@unmasked[TNG$PhyID]
-
-Biostrings::writeXStringSet(gen_subset, filepath = 'NCI/20240910_CBESbModelTest_ALL/all.fasta')
+write.csv(TNG, "./processed_data//TNGData.csv", row.names = FALSE)

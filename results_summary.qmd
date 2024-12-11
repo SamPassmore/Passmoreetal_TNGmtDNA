@@ -64,7 +64,7 @@ H2: Sub-clades of the Trans-New Guinea family show different time depths and lev
 
 ## Samples and Ethics
 
-We use 561 mtDNA samples in this study, 512 samples are taken from existing work, and 49 new samples collected from around Mount Wilhelm area (See Table SX).
+We use 561 mtDNA samples in this study, 512 samples are taken from existing work, and 49 new samples collected from around Mount Wilhelm area (See Table SX). Mount Wilhelm samples were collected from PNG highlanders from Mount Wilhelm villages in Chimbu province (Gembogl, Keglsugl, Womatne). Participants completed a questionnaire to determine language affiliation(s), current residence, date and place of birth, and a short genealogy of up to two generations to establish regional ancestry. Only individuals with a full regional ancestry over at least two generations were sampled (see André et al 2021 for details).
 
 ::: callout-note
 Could Nicolas or Francois provide a description of the collection procedure and ethics for the new samples? Or, if they have been since published, a reference.
@@ -73,6 +73,10 @@ I only list them as new based on the most recent excel sheet.
 :::
 
 For existing genetic samples, we restricted our search criteria to mtDNA samples that were taken from mainland New Guinea, and were not associated with the Austronesian expansion (i.e. individuals with a B4a1 haplotype). This resulted in a sample of 512 samples from existing work.
+
+For xx samples, complete mtDNA sequences were extracted from whole genome sequences generated at CNRGH, France and published in André et al (2024, supplementary table 1). Sequencing libraries were prepared using Tru-Seq DNA PCR-Free and TruSeq Nano DNA HT kits depending on DNA quantity.
+
+For all samples, consensus sequences were obtained after base-calling, quality filtering, and further quality control steps to obtain consensus sequences, as described previously (Arias et al 2018 DOI:  HYPERLINK "https://doi.org/10.1002/ajpa.23345"10.1002/ajpa.23345). The xx new complete mtDNA sequences have been deposited in GenBank (http://www.ncbi.nlm.nih.gov/genbank/) under accession numbers XXXXX.
 
 ### Mitochondrial sequence generation of new samples
 

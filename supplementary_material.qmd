@@ -69,8 +69,8 @@ if(!file.exists("processed_data/genetic_samples.csv")){
   system("RScript processing/format_geneticdata.R")
 }
 
-metadata = read.csv("processed_data/genetic_samples.csv")
-metadata = read.csv("NCI/20240917_RAll/TNGData.csv")
+# metadata = read.csv("processed_data/genetic_samples.csv")
+metadata = read.csv("./data/TNGData.csv")
 # Make taxa labels
 metadata$PhyID = paste(metadata$ID, metadata$haplogroup, sep = "_")
 # strip whitespace to match taxa labels
@@ -168,9 +168,7 @@ if(!file.exists("processed_data/papua_n.fasta") &
 
 There are 190 individuals with duplicate mtDNA mutations that group in to 107 distinct sets (i.e. some individuals have identical mitogenomes to multiple people). Of the 107 duplicate sets, 53 matched pairs have mismatched language classifications.
 
-For phylogenetic modelling, we do not include duplicate genomes, as the contain no additional information. We pick individuals at random.
-
-\[How to deal with linguistic mismatches\]
+For phylogenetic modelling, we do not include duplicate genomes, as the contain no additional information. We add duplicate tips back to the phylogeny after its construction in order to include individuals in subsequent analysis. Details of the adding tips proceedure can be found in the script `adding_tips.R`
 
 ## Phylogenetic model
 
@@ -230,7 +228,7 @@ The aim of this project is to determine whether linguistic affiliation structure
 2.  TNG Language Clade
 
 ```{r}
-metadata = read.csv("NCI/20240917_RAll//TNGData.csv")
+metadata = read.csv("./data/TNGData.csv")
 
 metadata$tng_words = ifelse(metadata$TNG == 1, "TNG", "Not TNG")
 metadata$major_haplogroup = substr(metadata$haplogroup, 1, 1)
@@ -273,25 +271,20 @@ mcct_tree = read.nexus("NCI/20240910_CBESbModelTest_ALL/full_model-all.mcct.tree
 mcct_depth = mean(adephylo::distRoot(mcct_tree))
 
 language_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_languagefamily.csv")
-
-# Because we calculate the probability per group, we need to make this generational average 
-# for trait probabaility data. But for Permutations, the average is all that is calculated
-# because of the computational memory issues. 
-language_probability_agg = posterior_aggregator(language_probability)
+  read.csv("./results/TNG_full_model-all.noburnin_probability_summary.csv")
 
 # Summarise the posterior
-posterior_summary = summarizer(language_probability_agg)
+posterior_summary = summarizer(language_probability)
 # remove results that are older than the MCCT tree
-posterior_summary = posterior_summary[posterior_summary$generation_time < mcct_depth,]
+posterior_summary = posterior_summary[posterior_summary$generation < mcct_depth,]
 
 permuted_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_permuted.csv")
+  read.csv("./results/TNG_full_model-all.noburnin_permutedsummary.csv")
 
 permuted_summary = summarizer(permuted_probability)
-permuted_summary = permuted_summary[permuted_summary$generation_time < mcct_depth,]
+permuted_summary = permuted_summary[permuted_summary$generation < mcct_depth,]
 
-metadata = read.csv('NCI/20240917_RAll/TNGData.csv') %>% 
+metadata = read.csv('./data/TNGData.csv') %>% 
   mutate(PhyID = paste0(ID, "_", haplogroup)) %>% 
   filter(PhyID %in% mcct_tree$tip.label)
 # metadata_n = metadata[metadata$PhyID %in% mcct_tree_mtdnaN$tip.label, ]
@@ -315,33 +308,39 @@ ggsave(plot = p_TNG, file = "figures/TNG_N_probability.png",
 These next graphs show the probability of shared language family against geographic proximity. we test geographic proximity at three distances: are two individuals within 50km of each other, 100kms, or 200kms.
 
 ```{r}
+distance48 = 
+  read.csv("./results/TNG_full_model-all.noburnin_48hsummary.csv")
 distance24 = 
-  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_24hours.csv")
+  read.csv("./results/TNG_full_model-all.noburnin_24hsummary.csv")
 distance12 = 
-  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_12hours.csv")
+  read.csv("./results/TNG_full_model-all.noburnin_12hsummary.csv")
 distance6 = 
-  read.csv("NCI/20240917_RAll/results/TNG_full_model-all.noburnin_6hours.csv")
+  read.csv("./results/TNG_full_model-all.noburnin_6hsummary.csv")
 
-dl = list(long = distance24,
-     medium = distance12,
-     short = distance6)
+dl = list(
+  v_long = distance48,
+  long = distance24,
+  medium = distance12,
+  short = distance6
+)
 
 ds = lapply(dl, summarizer)
 
 distance_summary = bind_rows(ds, .id = "distance")
 distance_summary$distance = factor(distance_summary$distance, 
-                                   levels = c("short", "medium", "long"))
+                                   levels = c("short", "medium", "long", "v_long"))
 
 distance_language = lapply(dl, function(x){
   x = as.data.table(x)
-  x[language_probability_agg, on = list(posterior, generation)]
+  x[language_probability, on = list(posterior, generation)]
 })
 
-distance_summary = distance_summary[distance_summary$generation_time < mcct_depth,]
+distance_summary = distance_summary[distance_summary$generation < mcct_depth,]
 
 facet_names = c(`short` = "w/n 6h",
                 `medium` = "w/n 12h",
-                `long` = "w/n 24h")
+                `long` = "w/n 24h",
+                `v_long` = "w/n 48h")
 
 p_TNG_N_Dist = Dist_Plot(posterior_summary, distance_summary, facet_names)
 print(p_TNG_N_Dist)
@@ -356,21 +355,21 @@ ggsave(plot = p_TNG_N_Dist, file = "figures/TNG_N_Distance.png")
 
 ld = read.csv("results/TNG_full_model-all.noburninlangdist_24hours.csv")
 
-ld$generation_time = as.numeric(gsub("g_", replacement = "", ld$generation))
+ld$generation = as.numeric(gsub("g_", replacement = "", ld$generation))
 
 lang_dist_summary = ld %>%
-    group_by(generation_time) %>%
+    group_by(generation) %>%
     summarise(mean.langdist = mean(p_lang_dist),
               mean.p_lang_nodist = mean(p_lang_nodist),
               mean.p_nolang_dist = mean(p_nolang_dist),
               mean.p_nolang_nodist = mean(p_nolang_nodist)) %>% 
-  reshape2::melt(id = c("generation_time"))
+  reshape2::melt(id = c("generation"))
 
 
-ggplot(lang_dist_summary, aes(x = generation_time, y = value, fill = variable)) + 
+ggplot(lang_dist_summary, aes(x = generation, y = value, fill = variable)) + 
   geom_area(position = "stack") 
 
-ggplot(lang_dist_summary, aes(x = generation_time, y = value, col = variable)) + 
+ggplot(lang_dist_summary, aes(x = generation, y = value, col = variable)) + 
   geom_line(lwd = 1.5) + 
   theme_minimal()
 ```
@@ -379,61 +378,61 @@ ggplot(lang_dist_summary, aes(x = generation_time, y = value, col = variable)) +
 
 ```{r, TNG_Probability, warning=FALSE, echo=FALSE}
 language_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_languagefamily.csv")
+  read.csv("./results/TNG_Branch_full_model-all.noburnin_probability_summary.csv")
 
-# Because we calculate the probability per group, we need to make this generational average 
-# for trait probabaility data. But for Permutations, the average is all that is calculated
-# because of the computational memory issues. 
-language_probability_agg = posterior_aggregator(language_probability)
-
-# Summarise the posterior
-posterior_summary = summarizer(language_probability_agg)
 # remove results that are older than the MCCT tree
-posterior_summary = posterior_summary[posterior_summary$generation_time < mcct_depth,]
+language_probability = language_probability[
+  language_probability$generation < mcct_depth,]
+# Summarise the posterior
+posterior_summary = summarizer(language_probability)
 
 permuted_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_permuted.csv")
-permuted_summary = summarizer(permuted_probability)
-permuted_summary = permuted_summary[permuted_summary$generation_time < mcct_depth,]
+  read.csv("./results/TNG_Branch_full_model-all.noburnin_permutedsummary.csv")
+permuted_summary = permuted_probability[permuted_probability$generation < mcct_depth,]
+permuted_summary = summarizer(permuted_summary)
 
-tree_data = full_join(mcct_tree, metadata, by = c(label = "PhyID"))
+mcct_branch = keep.tip(mcct_tree, metadata$PhyID[!is.na(metadata$TNG_Branch)])
+tree_data = full_join(mcct_branch, metadata[!is.na(metadata$TNG_Branch),], 
+                      by = c(label = "PhyID"))
 
-#### plot 
-p_TNGBranch = tree_line_plot(tree_data, posterior_summary, permuted_summary, "TNG_Branch")
+## Plot 
+p_TNGBranch = tree_line_plot(tree_data, posterior_summary, 
+                             permuted_summary, "TNG_Branch")
 print(p_TNGBranch)
-
-ggsave(plot = p_TNGBranch, file = "figures/TNGBranch_N_probability.png",
-       width = 315, height = 335, units = "mm")
 ```
 
 ```{r, TNG_Distance, warning=FALSE}
-distance50_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_24hours.csv")
-distance35_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_12hours.csv")
-distance20_probability = 
-  read.csv("NCI/20240917_RAll/results/TNG_Branch_full_model-all.noburnin_6hours.csv")
+distance48_probability = 
+  read.csv("./results/TNG_Branch_full_model-all.noburnin_48hsummary.csv")
+distance24_probability = 
+  read.csv("./results/TNG_Branch_full_model-all.noburnin_24hsummary.csv")
+distance12_probability = 
+  read.csv("./results/TNG_Branch_full_model-all.noburnin_12hsummary.csv")
+distance6_probability = 
+  read.csv("./results/TNG_Branch_full_model-all.noburnin_6hsummary.csv")
 
-distance_summary = lapply(list(long = distance50_probability,
-                        medium = distance35_probability,
-                        short = distance20_probability), 
+distance_summary = lapply(list(v_long = distance48_probability,
+                               long = distance24_probability,
+                        medium = distance12_probability,
+                        short = distance6_probability), 
                         summarizer)
 
 distance_summary = bind_rows(distance_summary, .id = "distance")
 distance_summary$distance = factor(distance_summary$distance, 
-                                   levels = c("short", "medium", "long"))
+                                   levels = c("short", "medium", "long", "v_long"))
 
-distance_summary = distance_summary[distance_summary$generation_time < mcct_depth,]
+distance_summary = distance_summary[distance_summary$generation < mcct_depth,]
 
 facet_names = c(`short` = "w/n 6hr",
                 `medium` = "w/n 12hr",
-                `long` = "w/n 24hr")
+                `long` = "w/n 24hr",
+                `v_long` = "w/n 48hr")
 
 p_TNGBranch_N_Dist = Dist_Plot(posterior_summary, distance_summary, facet_names)
 
 p_TNGBranch_N_Dist
 
-ggsave(plot = p_TNGBranch_N_Dist, file = "figures/TNGBranch_N_Distance.png")
+# ggsave(plot = p_TNGBranch_N_Dist, file = "figures/TNGBranch_N_Distance.png")
 ```
 
 ```{r}
@@ -484,8 +483,57 @@ pp = ggplot() +
         legend.position = "bottom") 
 pp
 
-ggsave(plot = pp, filename = "figures/TNGBranch_N_stackedprob.png")
+# ggsave(plot = pp, filename = "figures/TNGBranch_N_stackedprob.png")
 
+```
+
+#### TNG Branch: Father's Language
+
+```{r}
+source("analysis/helper.R")
+
+fl_probability = 
+  read.csv("results/TNG_Branch.father_full_model-all.noburnin_probability_summary.csv")
+fl_permutations = 
+  read.csv("results/TNG_Branch.father_full_model-all.noburnin_permutedsummary.csv")
+
+fl_results = fl_probability[fl_probability$generation < mcct_depth,]
+fl_permutations = fl_permutations[fl_permutations$generation < mcct_depth,]
+
+fl_summary = summarizer(fl_results)
+fl_summary_p = summarizer(fl_permutations)
+
+mcct_tree.father = keep.tip(mcct_tree, metadata$PhyID[!is.na(metadata$TNG_Branch.father)])
+
+tree_data = full_join(mcct_tree.father, metadata[!is.na(metadata$TNG_Branch.father),], 
+                      by = c(label = "PhyID"))
+
+p_TNGBranch.father = tree_line_plot(tree_data, fl_summary, fl_summary_p, "TNG_Branch.father")
+print(p_TNGBranch.father)
+
+```
+
+#### TNG Branch: Mother's Language
+
+```{r}
+ml_probability = 
+  read.csv("results/TNG_Branch.mother_full_model-all.noburnin_probability_summary.csv")
+ml_permutations = 
+  read.csv("results/TNG_Branch.mother_full_model-all.noburnin_permutedsummary.csv")
+
+ml_results = ml_probability[ml_probability$generation < mcct_depth,]
+ml_permutations = ml_permutations[ml_permutations$generation < mcct_depth,]
+
+ml_summary = summarizer(ml_results)
+ml_summary_p = summarizer(ml_permutations)
+
+mcct_tree.mother = keep.tip(mcct_tree, metadata$PhyID[!is.na(metadata$TNG_Branch.mother)])
+
+tree_data = full_join(mcct_tree.mother, metadata[!is.na(metadata$TNG_Branch.mother),], 
+                      by = c(label = "PhyID"))
+
+p_TNGBranch.mother = tree_line_plot(tree_data, ml_summary, ml_summary_p, "TNG_Branch.mother")
+print(p_TNGBranch.mother)
 ```
 
 ## Stable Clades
@@ -609,7 +657,7 @@ metadata_ss = metadata[metadata$ID %in% mcct_tree_mtdnaN, ]
 trait = metadata_ss$TNG
 names(trait) = metadata_ss$ID
 
-# w_b = traitheritage::within_between(tree = mcct_tree_mtdnaM, generation_time = 25, trait = trait)
+# w_b = traitheritage::within_between(tree = mcct_tree_mtdnaM, generation = 25, trait = trait)
 # 
 # saveRDS(w_b, "results/Branch_Family_mtDNAM_CCP_withinbetween.RDS")
 # w_b = readRDS("results/Branch_Family_mtDNAM_CCP_withinbetween.RDS")
