@@ -363,6 +363,7 @@ genetic_data$interview_language[genetic_data$interview_language == "Gimi (Easter
 #### Father's language
 ## Simplify this note, but it is not clear what language Kora is. 
 genetic_data$father_language[genetic_data$father_language == "Likely Kora of the Chimbu area."] = "Kora"
+genetic_data$father_language[genetic_data$father_language == "Kuman"] = "Kuman [kue]"
 
 #### Mother's language
 genetic_data$mother_language[genetic_data$mother_language == "Asaro’o"] = "Asaro’o [mtv]"
@@ -375,7 +376,8 @@ genetic_data$mother_language[genetic_data$mother_language == "Gende"] = "Gende [
 genetic_data$mother_language[genetic_data$mother_language == "Kuman"] = "Kuman [kue]"
 ## adding consistent labelling for North Wahgi
 genetic_data$mother_language[genetic_data$mother_language == "Wahgi, North"] = "Wahgi, North [whg]"
-
+genetic_data$mother_language[genetic_data$mother_language == "Kambai/Tapei [afp]"] = "Tapei [afp]"
+genetic_data$mother_language[genetic_data$mother_language == "Biaru-Waria [WER]"] = "Biaru-Waria [wer]"
 
 ## One language is listed as TO EXCLUDE. We exclude it here
 genetic_data = genetic_data[!genetic_data$interview_language == "TO EXCLUDE",]

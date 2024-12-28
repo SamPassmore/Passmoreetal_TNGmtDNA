@@ -1,0 +1,481 @@
+---
+title: "mtDNA - Language Results summary"
+author: "Sam Passmore"
+format: pdf
+editor: visual
+
+bibliography: references.bib
+
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(ape)
+library(ggplot2)
+library(adephylo)
+library(data.table)
+library(broom)
+library(boot)
+library(dplyr)
+library(bayestestR)
+library(ggtree)
+library(treeio)
+library(patchwork)
+library(forcats)
+library(kableExtra)
+library(janitor)
+```
+
+This document contains a summary of results testing for a relationship between mtDNA genetic diversity on the Island of New Guinea and the history of the Trans-New Guinea language family.
+
+## Key Points
+
+1.  In general, there is a correlation between genetic history and contemporary linguistic data of TNG speakers.
+    1.  This might imply a continuous pattern of parent-to-child transmission in TNG speakers.
+2.  This correlation is not common to all sampled branches of TNG.
+    1.  Kainantu-Goroka and Angan speakers drive the correlation
+    2.  There is no correlation in Chimbu-Waghi, Bosavi, or Enga-Kewa-Huli speakers.
+        1.  For Bosavi and Enga-Kewa-Huli, this may be due to a lack of samples
+        2.  This is an unlikely explanation for the second most sampled language clade Chimbu-Waghi.
+    3.  Interestingly, Kainantu-Goroka is the family of South Fore, and cultural group significantly affected by Kuru in the 1960s, which is thought to have broken down the gene-language correlation [@li2020]. We have some South Fore speakers, but mostly not, suggesting this outbreak did not spread throughout communities linked to the language clade.
+
+Both genes and languages follow a path of parent-to-child transmission [@cavalli-sforza1991]. For genes, this is a deterministic process. You must inherit genes from your parents. For languages it is not deterministic. It is common, both now and throughout history, to speak the same language as your parents, but there are a plethora of reasons why the chain of transmission varies between groups or does not persist. In this paper, we look to observe whether there is a correlation between genes and language in an area of extraordinary linguistic diversity, New Guinea, and within the largest and arguably most recent language family spread of the region, that of the Trans-New Guinea family (TNG).
+
+New Guinea
+
+Nevertheless, the dual inheritance of genes and languages is correlation that has been repeatedly observed and maintained over time [@pichkar2024; @creanza2015].
+
+# Justification
+
+The Trans-New Guinea language family is the largest, and likely most recent, language family spread within the linguistically diverse island of New Guinea. Where, when, why, and how the TNG language family spread across the breadth of New Guinea, and into neighboring islands, is a topic of ongoing discussion, but current evidence point to a process of population growth due to the advent of agriculture, followed by expansion of people, and spread and divergence languages from a common source, termed demic diffusion [@bergström2017, @denham2003, @shaw2020, @schapper2017]. A theoretically raised alternative is the cultural spread of agriculture and language without the spread of genes [@stoneking2023; @guglielmino1995]. New Guinea is a place of extreme cultural and linguistic diversity, so rather than any one process occurring, it is likely that there are a variety of diffusion models at play in the spread of languages.
+
+Here, we offer a quantitative test of the correlation between language and genes amongst speakers of Trans-New Guinea languages and examine the correlation between language clades of the same family. The developing story of the origin of TNG points to an origin in the Waghi Valley of the East New Guinea highlands. This is the home to groups of TNG languages that show the deepest and most robust linguistic history[^1] [@pawley2005; @schapper2017], with archaeological evidence suggesting the early stages of agriculture began in the Kuk Swamp (within the Waghi valley) around 10kya, with agricultural advancements apparent at 6kya, and 4kya [@denham2003, @shaw2020]. The invention of agriculture elsewhere in the world has often correlated with a spread of languages [@diamond2003], creating geographically dispersed and linguistically diverse family, and it is the coincidence of linguistic origins and agriculture in the East New Guinea Highlands that points to the hypothesis that TNG has began to expand around 10kya.
+
+[^1]: Although, it is worth pointing out that the family as a whole is largely a hypothesis, and evidence for establishing the breadth and depth of the languages involved is not from universally agreed.
+
+Existing genetic evidence leans towards the demic diffusion of Trans-New Guinea languages from the Wahgi valley after the adoption of agriculture. @bergström2017 identify a distinct genetic pattern between New Guinea Highland and lowland populations, showing effective population sizes take off in Southern Highlands, Chimbu, and Madang, around 10,000 years ago. @mona2007 identify two genetic haplogroups in North-West New Guinea that have suggested origins in the New Guinea, highlands around 6kya found amongst speakers of TNG languages. However, genetic divergence between Highland and Lowlanders is mediated by several genetic admixture events, suggesting frequent contact between the purported home of TNG and other areas [@brucato2021], possibly aided by ubiquitous multilingualism and sister-exchange marriage practices [@evans2012]. Culturally perpetuated disease *kuru* disrupted the co-evolution of genes and language, which, during 1958-59, resulted in the death of a significant portion of women in Fore-speaking communities of the Eastern Highlands, and their surrounds [@quinn2024; @liu2020]. Communities with high female mortality were then required to reach beyond existing wife-exchange networks to continue to reproduce, which possibly disrupted the correlation between linguistic and genetic diversity that existed outside the communities affected by Kuru [@li2020].
+
+Linguistic evidence cannot speak directly to a demic diffusion model, but in general research connecting TNG expansion to agriculture is limited [@schapper2017]. Linguistic reconstruction for the words of key crops such as taro, sugarcane, and bananas provide weak evidence to a common source of agricultural traditions for TNG speakers [@schapper2017; @pawley2017], but further comparisons are limited without more detailed linguistic documentation.
+
+Dichotimising the spread of TNG into a demic vs cultural diffusion is oversimplifying a complex history, but presents two testable extremes: under a model of demic diffusion we should expect a strong gene-language correlation, and under a mode of cultural diffusion we should not. The lack of a clear signal towards either the demic or cultural diffusion model is likely due to the cultural diversity of New Guinea, adding complexity to the correlation between languages and genes among Trans-New Guinea speakers.
+
+In this paper we take a direct and temporal approach to testing the correlation between genes and Trans-New Guinea languages. Using genetic (mtDNA) and linguistic data from XX individuals from across mainland Papua New Guinea, with a particular focus on samples around the proposed origin of TNG.
+
+We find evidence for gene-language correlation in TNG until around YY years ago. These individuals speak a total of X languages, from Y language families. XX are TNG speakers speaking languages from Y clades. After building a phylogeny from the genetic samples, we find that genetically related pairs of individuals are more likely than chance to speak a language from the same language clade, up to around YY years ago, finding similar patterns when analyzing the paternal and maternal languages of individuals. This correlation is not present across all TNG groups however. The correlation is primarily driven by a tight gene-language relationship in Kainantu-Goroka and Angan speakers. This result suggests that demic diffusion was a plausible cause for the spread of Trans-New Guinea languages, but since the result is not ubiquitous, future work should examine the role of cultural diffusion in the spread of Trans-New Guinea.
+
+# Hypotheses
+
+H1: Through the parent-to-child transmission of genes and languages, Trans-New Guinea languages will show a distinct genetic lineage to non-Trans New Guinea languages.
+
+H2: Sub-clades of the Trans-New Guinea family show different time depths and levels of strength in the correlation between genes and languages
+
+# Materials and Methods
+
+## Samples and Ethics
+
+We use 561 mtDNA samples in this study, 512 samples are taken from existing work, and 49 new samples collected from around Mount Wilhelm area (See Table SX). Mount Wilhelm samples were collected from PNG highlanders from Mount Wilhelm villages in Chimbu province (Gembogl, Keglsugl, Womatne). Participants completed a questionnaire to determine language affiliation(s), current residence, date and place of birth, and a short genealogy of up to two generations to establish regional ancestry. Only individuals with a full regional ancestry over at least two generations were sampled (see André et al 2021 for details).
+
+::: callout-note
+Could Nicolas or Francois provide a description of the collection procedure and ethics for the new samples? Or, if they have been since published, a reference.
+
+I only list them as new based on the most recent excel sheet.
+:::
+
+For existing genetic samples, we restricted our search criteria to mtDNA samples that were taken from mainland New Guinea, and were not associated with the Austronesian expansion (i.e. individuals with a B4a1 haplotype). This resulted in a sample of 512 samples from existing work.
+
+For xx samples, complete mtDNA sequences were extracted from whole genome sequences generated at CNRGH, France and published in André et al (2024, supplementary table 1). Sequencing libraries were prepared using Tru-Seq DNA PCR-Free and TruSeq Nano DNA HT kits depending on DNA quantity.
+
+For all samples, consensus sequences were obtained after base-calling, quality filtering, and further quality control steps to obtain consensus sequences, as described previously (Arias et al 2018 DOI:  HYPERLINK "https://doi.org/10.1002/ajpa.23345"10.1002/ajpa.23345). The xx new complete mtDNA sequences have been deposited in GenBank (http://www.ncbi.nlm.nih.gov/genbank/) under accession numbers XXXXX.
+
+### Mitochondrial sequence generation of new samples
+
+::: callout-note
+Francois/Nicolas might be able to add some information about new samples from Mt Whilem here
+
+SP should also add a summary of the existing samples.
+:::
+
+### Linguistic Metadata
+
+Of the 561 individuals who provided genetic samples, 236 provide metadata on their primary spoken language. 45 of the 49 newly sequences individuals provided their primary language(s). 44 speak Kuman, which is a Chimbu-Wahgi language, a clade within the TNG family. All individuals parents (mother and father) also spoke Kuman, with the exception of three mother's who spoke Asaro'o, Gende, and North Wahgi. These are also all TNG languages.
+
+Across the complete sample, 212 individuals speak Trans-New Guinea Languages, and 62 do not. The 212 TNG speakers are split across eight different sub-families within the family, from a total of ten sub-families [@hammarström] . The majority speak Kainantu-Goroka languages (number of genetic samples = 87), followed by Chimbu-Wahgi languages (45), Angan (38), Bosavi (20), Enga-Kewa-Huli (18), Madang (2), Ok-Oksapmin (1), and Mailuan (1). As mentioned, the classifications of languages within TNG is not universally agreed, however, all these sub-families are uncontroversial in their status as TNG language clades at the time of writing \[EvansFedden, Greenhill, Dryer 2022\]. The Mailuan sub-family is perhaps the exception, for which we have one speaker of Magi \[mgu\]. Mailuan has mixed support for TNG membership but with evidence leaning towards inclusion rather than exclusion. We include it here as TNG.
+
+Of the 62 non-TNG speakers, 18 listed Tok Pisin as their primary language, a Pacific Creole languages rapidly becoming the lingua franca of PNG. 11 individuals listed Austronesian languages as their primary language, despite not showing Austronesian genetic ancestry. These are examples of language shift, where individuals from a genetic lineage speak a language that we know did not expand alongside it. Language shift is pervasive between Papuan and Austronesian languages and is well documented in New Guinea and across the Pacific [@lipson2020, @lipson2018, @posth2018]. Nine of the 11 were sampled from the south-east tip of PNG, across the Oro, Central, National Capital, Morobe, and Milne Bay provinces. The remainder of non-TNG speakers in our sample come from a seven different language families found across PNG, from a total of around 42 families. Eight speakers of Arafundi langauges (Tapei \[afp\]: 7; ), five Lower-Sepik speakers (all Tabriak \[tzx\]); three Ndu speakers (Boikin \[bzf\]), two speakers of the isolate langauge, Wiru \[wiu\], and one speaker from the Sepik (Kwoma \[kmo\]), Eleman (Orokolo \[oro\]), and South Bougainville (Siwai \[siw\]) families.
+
+For TNG speaking individuals, we categorise language metadata at the language sub-family level for analysis. We do this for two reasons - firstly because we know that languages evolve at a faster rate than genes. The differential in rates makes it more difficult to identify deep relationships and the language level but by using a higher order language category, we analyse a linguistic trait that evolves at a slower rate, and therefore the potential to maintain deeper signal. Secondly, because kinship norms often result in individuals moving between villages, there is significant mixing of genes at the language level. In our sample of XX individuals who report paternal and maternal languages, however, we have only one example of parents speaking languages from different linguistic clades. This suggests that marriages tend to be within language clades, rather than between, at least within our sample.
+
+# Methods
+
+## Phylogeny
+
+We use BEAST v2.7.4 to infer the genealogical relationships between our set of 561 mtDNA. We use the BEAST package bModeltest to assess the most appropriate Substitution model. bModeltest will switch between all Transistion and transversion models, providing the model average across the runs and means we do not need to commit to a particular substitution model.
+
+We use use a Coalescent Extended Bayesian Skyline Population history model (EBSP). The EBSP model leverages coalescent theory to account for fluctuating population size in the phylogenetic model[@heled2008]. The sparsity of historical knowledge in Southern New Guinea means we do not have a good understanding of historic changes in population size. We opt for using a model that will allow for a fluctuating population, rather than assuming that it did not fluctuate. We adjust the factor rate of the tree prior to 0.5, and change the population prior mean to an improper prior of 1/x, as suggested in @heled2008. We use a strict clock mutation. We determine mtDNA mutations rate of 2.4065 x 10^-8^ by taking the mean value from studies calibrating the human mitochondrial clock [@rieux2014; @fu2013].
+
+In addition we imposed tiered monophyletic groupings for the M and N haplogroups, and then for E and Q haplogroups the within the M haplogroup and P within the N haplogroup.
+
+The MCMC chain was run for X iterations, sampling every Y, resulting in a posterior sample of Z, after a Y% burnin period. All parameters showed effective samples sizes greater than 200, as per XX. We run the model twice to confirm convergence to the same values.
+
+## Estimating the heritage of traits
+
+To estimate the 'channels of language', we calculate the probability of two individuals sharing a language within a genetic clade, across the phylogenetic history. This calculation follows from @lansing2017 and comes in the form:
+
+$$
+P(i_l,j_l)|i_{g(t)}, j_{g(t)}) = \frac{P(i_l, j_l \bigcap i_{g(t)}, j_{g(t)})}{P(i_{g(t)}, j_{g(t)}} = \frac{\sum_{g=1}^{c_t}(\sum_{i,j\neq i}1_{cos(l_ig, l_jg) > 0})}{\sum_{g=1}^{c_t}n_g(n_g - 1) / 2}
+$$
+
+$c_t$ is the number of genetic clades at any point in history, for t generations. We assume 25 year generation times. $l_{i_g}$ and $l_{j_g}$ are the languages or language families spoken by individuals within genetic clade $g$. $1_{cos(l_{i_g}, l_{i_g}) > 0}$ is an indicator function, returning 1 if the ith and jth individual share a language, and zero otherwise. $n_g$ is the number of individuals in $g$. We perform this calculation across a random posterior of 5,000 trees. Following @lansing2017, we compare this calculation to a permuted trait, which stands as a null hypothesis of the linguistic channels seen in the genetics.
+
+We test the gene-language correlations at two levels of linguistic analysis: a binary trait indicating whether a language is a Trans-New Guinea langauge or not, and the linguistic clade from which that language is found. The precise membership of languages to the broader TNG family is not widely agreed [@schapper2017], but our sample only contains speakers from uncontroversial language clades (See Materials & Methods for details).
+
+Data and code for this analysis can be found at XXX. Functions for calculating the phylogenetic heritage of traits are held in the package `traitheritage`, which can be found at `github.com/SamPassmore/traitheritage`.
+
+# Results
+
+## Phylogeny
+
+The 49 new mtDNA samples were taken from Mount Whilem, Chimbu Province. The majority of individuals were born in this province (41; 87%), with others migrating from Jiwaka (3), Highlands (1), Western Province (1), and one from the National Capital Province. All of these individuals belonged to haplogroups already observed in this region of New Guinea P (37; 72%) and Q (14; 27%).
+
+Across the entire sample, there is no strong relationship between higher haplogroups. TNG speaking populations contain mostly P and Q haplogroups, all language clades showing approximately half of each (See supplementary table X).
+
+```{r haplogrouptable}
+# Na values to blanks
+options(knitr.kable.NA = '-')
+
+TNG_metadata = read.csv("processed_data/TNGData.csv")
+
+TNG_metadata$HG = fct_collapse(TNG_metadata$haplogroup,
+                                           E = c("E1a1b4", "E1a2+(16261)", "E1a2a1"),
+                                           M = c( "M27a2a", "M27b1", "M28a+204",
+                                                  "M28b1", "M29a"),
+                                           N13 = c("N13"),
+                                           P = c("P"),
+                                           P1 = c("P1", "P1(P1)", "P1+152", "P1d", 
+                                                  "P1d(P1d)", "P1d(P1d1)", "P1d1",
+                                                  "P1d1a", "P1d2", "P1d2a"),
+                                           P2 = c("P2", "P2(P2)"),
+                                           P3_P4 = c("P3b", "P3b(P3b)", "P4a", "P4a1"),
+                                           Q1 = c("Q1", "Q1+@16223"), 
+                                           Q1a = c("Q1(Q1)", "Q1a", "Q1a(Q1a)", 
+                                                   "Q1a(Q1a1a)", "Q1a1", "Q1a1a"),
+                                           Q2_Q3 = c("Q2a", "Q2a4", "Q3", "Q3a(Q3a)",
+                                                    "Q3a(Q3a1)", "Q3a+61  62", 
+                                                    "Q3a+61 62", "Q3a1", "Q3b"),
+                                           R14 = c("R14"))
+
+TNG_metadata %>% 
+  dplyr::filter(!Branch_Family %in% c("Eleman", "Mailuan", "Ok-Oksapmin", "Sepik",
+                                      "South Bougainville", "Wiru", "Madang", "Ndu",
+                                      "Indo-European")) %>% 
+  dplyr::filter(!is.na(Branch_Family)) %>% 
+  group_by(Branch_Family, HG) %>% 
+  mutate(n=n()) %>% 
+  group_by(HG) %>% 
+  distinct(HG, Branch_Family, n) %>%
+  mutate(Per=n/sum(n)) %>% #, np=paste0(n," (",round(Per*100,0)," %)")) %>%
+  select(-Per) %>% 
+  tidyr::spread(HG, n) %>% 
+  adorn_totals("row") %>% 
+  knitr::kable(.) %>% 
+  kable_styling("striped", full_width = F) %>% 
+  row_spec(0, angle = 90) 
+
+```
+
+::: callout-caution
+Note to group this table as TNG and Non-TNG languages
+:::
+
+## Hypothesis 1
+
+Hypothesis one asks whether we observe a distinct genetic structure between those that speak TNG languages and those who do not. Therefore, for each individual for which have language data (n = 236), we determine whether their primary language is within the TNG family (1) or not (0). We then ask what the probability that an individual shares this linguistic trait (speaking a TNG language) with another individual in your genetic clade at 25 year time intervals across 2,500 phylogeny in the posterior.
+
+The plot below shows this result. The phylogeny shows the Maximum Clade Credibility tree, from the posterior of 10,000 trees. Each taxa is labelled with their linguistic metadata, which in this case is whether an individual speaks a TNG language (green) or not (red). The RHS graph shows the probability of a shared language within a genetic clade over time (blue), and the posterior variance of this calculation (light blue). A a baseline null hypothesis, we also show the same calculation with randomly permuted tips (green). We permute the tip 30 times for each of the 10,000 trees. This means the light green error bands contain both phylogenetic error, and permutation error.
+
+```{r TNG}
+#| fig-cap: "Probability of two individuals within a genetic clade both speaking a TNG language. The dotted line shows 16,650 years, where we can no longer distinguish the gene-language correlation from chance."
+#| cap-location: bottom
+#| fig-height: 5
+
+source("analysis/helper.R")
+
+mcct_tree = read.nexus("NCI/20240910_CBESbModelTest_ALL/full_model-all.mcct.trees") 
+mcct_depth = mean(adephylo::distRoot(mcct_tree))
+
+# tng_results = read.csv("results/TNG_full_model-all.noburnin_probability_summary.csv")
+# tng_permutations = read.csv("results/TNG_full_model-all.noburnin_permutedsummary.csv")
+# 
+# tng_results = tng_results[tng_results$generation < mcct_depth,]
+# tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]
+# 
+# tng_summary = summarizer(tng_results)
+# tng_summary_p = summarizer(tng_permutations)
+# 
+# write.csv(tng_summary, "processed_data/TNG_summary.csv")
+# write.csv(tng_summary_p, "processed_data/TNG_summary_p.csv")
+
+tng_summary = read.csv("processed_data/TNG_summary.csv")
+tng_summary_p = read.csv("processed_data/TNG_summary_p.csv")
+
+tng_tree = keep.tip(mcct_tree, TNG_metadata$PhyID[!is.na(TNG_metadata$TNG)])
+tree_data = full_join(tng_tree, TNG_metadata, by = c(label = "PhyID"))
+
+tree_line_plot(tree_data, tng_summary, tng_summary_p, variable = "TNG") + 
+  geom_vline(xintercept = 16650,  linetype="dotted")
+
+# when does the data probability seperate from the permutation probability
+# true_perm = left_join(tng_summary, tng_summary_p, by = c("generation"),
+#                       suffix = c(".true", ".perm"))
+# idx = which(true_perm$CI_low.true > true_perm$CI_high.perm) 
+# head(true_perm[idx,])
+
+# when does the data probability rejoin from the permutation probability
+# idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > 2250)
+# head(true_perm[idx,])
+
+```
+
+The first 2,250 years show highly variable probability results, with wide-errors. This is because we have very few genetic coalescent events before this time, meaning the probabilities change alot with each new event.
+
+From 2,250 years the 95% High Density Intervals (HDI) no longer overlap between the probability estimates from the true data and the permuted data, suggesting there is a statistical difference between the random data and the permuted data. At 16,650 years, we can no longer distinguish a gene-language correlation from randomly permuted data.
+
+The statistical separation of TNG to our permutations suggests that there has been persistent gene and language parent-to-child transmission and that the TNG language family has a distinct genetic channel in our sample. One might make the case that since the majority of our sample is TNG, we might expect to find an effect. However, the permutation test show that it is the distribution of langauges across the genetic sample that is important, rather than just the counts.
+
+The random allocation of languages is, however, a weak null hypothesis because both languages and genes are spatially distributed. An more robust null hypothesis is to ask whether the correlation between language and genes in our sample is greater than the correlation between genes and distance. Importantly, this is an alternative null hypothesis, not an alternative hypothesis. The causal action we are modelling is the probability that language and genes are both being passed on from parent-to-child. The relationship between genetic similarity and distance is showing us how likely it is that genetic diversity is restricted to a particular distance. In the majority of (but not all) cases, pairs of individuals who share a language are also close-by. By using the gene-distance correlation as a baseline, we can determine whether there are cultural mechanisms in play that influence the gene-language correlation. \<this justification needs more thought\>
+
+The graph below shows the probability of individuals being within three distance of each other: 6 hours walk, 12 hours walk, and 24 hours walk. We use time instead of distance because of the rugged terrain in the area. Whether Tobler's hiking function accurately represents the walking constraints of the local people is debatable, but we continue with this limitation in mind. These distance variables are therefore categorical - is a pair of individuals within the distance measure or outside of it. A limitation of this approach is that we are using contemporary measures of distance travelled over historical time. Over the lifespace of the phylogeny (\~70kya), or even the depth of our previous effect (16kya) 24 hours walking distance is not very far. Nevertheless, this comparison gives some idea of how important linguistic boundaries might be, relative to proximity.
+
+:::: callout-caution
+::: callout-caution
+I am not 100% sure what this result is telling us. The general idea is that permutations are a poor null hypothesis, but I dont know if the distance test is an improvement.
+:::
+::::
+
+```{r distance}
+#| fig-cap: "Probability of two individuals within a genetic clade being within 6, 12, 24, or 48 hours walking from each other, according to Tobler's walking function (green). The blue line is repeated from the previous figure, showing the probability of speaking a TNG langauge within a genetic clade."
+#| cap-location: bottom
+#| fig-height: 5
+
+distance48 = read.csv("results/TNG_Branch_full_model-all.noburnin_48hsummary.csv")
+distance24 = read.csv("results/TNG_Branch_full_model-all.noburnin_24hsummary.csv")
+distance12 = read.csv("results/TNG_Branch_full_model-all.noburnin_12hsummary.csv")
+distance6 = read.csv("results/TNG_Branch_full_model-all.noburnin_6hsummary.csv")
+
+distance_summary = lapply(list(
+                        verylong = distance48[distance48$generation < mcct_depth,],
+                        long = distance24[distance24$generation < mcct_depth,],
+                        medium = distance12[distance12$generation < mcct_depth,],
+                        short = distance6[distance6$generation < mcct_depth,]), 
+                        summarizer)
+
+distance_summary = bind_rows(distance_summary, .id = "distance")
+distance_summary$distance = factor(distance_summary$distance, 
+                                   levels = c("short", "medium", "long", "verylong"))
+
+facet_names = c(`short` = "w/n 6hr",
+                `medium` = "w/n 12hr",
+                `long` = "w/n 24hr",
+                `verylong` = "w/n 48hr")
+
+p_TNGBranch_N_Dist = Dist_Plot(tng_summary, distance_summary, facet_names)
+
+p_TNGBranch_N_Dist
+```
+
+## Hypothesis 2
+
+We are confident that TNG speakers show a distinct genetic signal to non-TNG speakers. Next we are interested in whether that correlation persists for all sub-clades of TNG, or if the effect is stronger or deeper for different clades. We have genetic samples from 8 TNG sub-clades, which are unevenly sampled. The majority speak Kainantu-Goroka languages (n = 87), followed by Chimbu-Wahgi languages (45), Angan (38), Bosavi (20), Enga-Kewa-Huli (18), Madang (2), Ok-Oksapmin (1), and Mailuan (1). Since our probability calculation relies on pairs, it is impossible for Ok-Oksapmin and Mailuan to show any positive relationship, and very unlikely for Madang. These individuals are kept in the analysis because they will influence the denominator calculation.
+
+First, we replicate the analysis from Hypothesis 1, but with individuals labelled with their TNG clade, or as the general "Not TNG" category. The "Not TNG" category influences the probability of other clades, in that Non-TNG speakers can be within a TNG clade, but is not a category of interest in itsself. The test is now asking what is the probability that you share a language clade with an individual in your genetic clade.
+
+::: callout-caution
+The posterior distribution for this analysis is only 500 trees because my computer ran out of memory. But we will run it on more on the supercomputer.
+:::
+
+```{r TNG_branch}
+#| fig-cap: "Probability of two individuals within a genetic clade both speaking a language from the same TNG clade."
+#| cap-location: bottom
+#| fig-height: 5
+
+# TNG_metadata = read.csv("data/TNGBranchData.csv")
+# 
+# tng_results = read.csv("results/TNG_Branch_full_model-all.noburnin_probability_summary.csv")
+# tng_permutations = read.csv("results/TNG_Branch_full_model-all.noburnin_permutedsummary.csv")
+# 
+# tng_results = tng_results[tng_results$generation < mcct_depth,]
+# tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]
+# 
+# posterior_summary = summarizer(tng_results)
+# permuted_summary = summarizer(tng_permutations)
+# 
+# write.csv(posterior_summary, "processed_data/tng_bytraitresults.csv")
+# write.csv(permuted_summary, "processed_data/tng_permuted_bytraitresults.csv")
+
+posterior_summary = read.csv("processed_data/tng_bytraitresults.csv")
+permuted_summary = read.csv("processed_data/tng_permuted_bytraitresults.csv")
+
+tng_tree = keep.tip(mcct_tree, TNG_metadata$PhyID[!is.na(TNG_metadata$TNG)])
+tree_data = full_join(tng_tree, TNG_metadata, by = c(label = "PhyID"))
+
+tree_line_plot(tree_data, posterior_summary, permuted_summary, variable = "TNG_Branch") + 
+  geom_vline(xintercept = 18875,  linetype="dotted")
+
+# when does the data probability seperate from the permutation probability
+# true_perm = left_join(posterior_summary, permuted_summary, by = c("generation"),
+#                       suffix = c(".true", ".perm"))
+# idx = which(true_perm$CI_low.true > true_perm$CI_high.perm)
+# head(true_perm[idx,])
+
+# when does the data probability rejoin from the permutation probability
+# idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > 2250)
+# head(true_perm[idx,])
+```
+
+This graph shows similar results to before: there is no evidence of a correlation within the last 1,275 years, again this is likely because of a small number of coalescent events before this data. From 1,275 years ago to 19,250 there is a statistical separation between the observed distribution of language-clades from chance.
+
+To see how this probability is distributed between language clades, we show the probability over the last 20,000 years, stacked by the contribution of each language clade. Note that there is only one sample for the langauge branches Ok-Oksapmin, and Mailuan, and only two for Madang. Since this analysis relies on many pairs of individuals, we do not analyse them further.
+
+```{r by_trait}
+# tng_branch = read.csv("results/TNG_Branch_full_model-all.noburnin_probability_bytrait.csv")
+# tb_permuted = read.csv("results/TNG_Branch_full_model-all.noburnin_permutedbytrait.csv")
+# 
+# tngbranch_summary = tng_branch %>%
+#   filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+#   dplyr::filter(generation <= mcct_depth) %>%
+#   dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan")) %>%
+#   group_by(generation, state) %>%
+#   summarise(
+#     mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+#     ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
+#     # 95% credible interval
+#     n_matches = sum(numerator_sum)
+#   ) %>%
+#   tidyr::unpack(ci_hdi)
+# 
+# write.csv(tngbranch_summary, "processed_data/tng_bytraitresults2.csv")
+
+tngbranch_summary = read.csv("processed_data/tng_bytraitresults2.csv")
+
+ggplot() + 
+  geom_area(data = tngbranch_summary,
+       aes(x = generation, y = mean_clade_probability, fill = state), colour = "black") + 
+  scale_x_continuous(breaks = c(5000, 10000, 15000, 20000), 
+                     labels = c("5k", "10k", "15k", "20k"), limits = c(0, 25000)) +
+  xlab("") + 
+  ylab("") + 
+  theme_classic() + 
+  ylim(c(0, 1)) +
+  scale_fill_discrete(name = element_blank()) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(colour = "black", linewidth=0.5),
+        legend.position = "bottom") 
+```
+
+This shows that the marjority of the probability is made up by Kainantu-Goroka speakers, followed by Angan, and then Chimbu-Wahgi speakers. Bosavi and Enga-Kewa-Huli speakers make up much less of the probability.
+
+Since Kainantu-Goroka and Chimbu-Wahgi speakers are also the most commonly sampled, it is possible that their contribution to the probability is due to their frequency in the sample, rather than have a stronger correlation between genes and language. To do this, we parse out the probability for each langauge clade and compare the result to a permutation, as we did in hypothesis 1. We do this for Kainantu-Goroka, Chimbu-Wahgi, Angan, Bosavi, and Enga-Kewa-Huli.
+
+```{r by_trait_perms}
+# tbp_summary = tb_permuted %>%
+#   filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+#   dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan")) %>%
+#   dplyr::filter(generation <= mcct_depth) %>%
+#   group_by(generation, state) %>%
+#   summarise(
+#     mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+#     ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
+#     # 95% credible interval
+#     n_matches = sum(numerator_sum)
+#   ) %>%
+#   tidyr::unpack(ci_hdi)
+# 
+# write.csv(tbp_summary, "processed_data/tng_permuted_bytraitresults2.csv")
+tbp_summary = read.csv("processed_data/tng_permuted_bytraitresults2.csv")
+
+ggplot(tngbranch_summary,aes(
+                     ymin = CI_low,
+                     ymax = CI_high,
+                     x = generation,
+                     y = mean_clade_probability
+                 )) +
+  geom_line(col = "blue") +
+  geom_ribbon(fill = "lightblue", alpha = 0.5) +
+  geom_ribbon(
+    data = tbp_summary,
+    aes(
+      ymin = CI_low,
+      ymax = CI_high,
+      x = generation,
+      y = mean_clade_probability
+    ),
+    fill = "lightgreen",
+    alpha = 0.5
+  ) +
+  geom_line(
+    data = tbp_summary,
+    aes(x = generation, y = mean_clade_probability),
+    col = "forestgreen"
+  ) + 
+  scale_x_continuous(breaks = c(5000, 10000, 15000, 20000), 
+                     labels = c("5k", "10k", "15k", "20k"), limits = c(0, 25000)) +
+  theme_minimal() + 
+  ylab("Probability") + xlab("Time") + 
+  # xlim(c(0, 25000)) + 
+  facet_wrap(~state)
+
+# # when does the data probability seperate from the permutation probability
+# true_perm = left_join(tngbranch_summary, tbp_summary, by = c("generation", "state"),
+#                       suffix = c(".true", ".perm"))
+# idx = which(true_perm$CI_low.true > true_perm$CI_high.perm & true_perm$state == "Angan")
+# idx = which(true_perm$CI_low.true > true_perm$CI_high.perm & true_perm$state == "Kainantu-Goroka")
+# head(true_perm[idx,])
+# 
+# # when does the data probability rejoin from the permutation probability
+# idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > 2300 & 
+#               true_perm$state == "Angan")
+# idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > 2325 & 
+#               true_perm$state == "Kainantu-Goroka")
+# head(true_perm[idx,])
+
+```
+
+Only Angan and Kainantu-Goroka show gene-language correlations. Angan shows statistical differentiation from chance starting 2,300 years ago, until 21,900 years ago - slightly longer than the combined result. Kainantu-Goroka shows a statistical differentiation starting from 2,400, until 13,950 - much younger than the overall result.
+
+The permutation test shows that gene-language associations are not solely due to the sampling frequencies of different language cladesin Kainantu-Goroka and Angan. In the remaining langauge clades we do not observe any relationship between genetic clades and linguistic affiliation. It is difficult to know whether this is because of a low sample size or a real effect. Notably, Chimbu-Wahgi has a larger number of individuals than Angan, but no correlation between langauge and genes. In the case of Bosavi and Enga-Kewa-Huli speakers, low sample size may be an influence.
+
+# Conclusion
+
+This study has shown a correlation between genes and language up to a date of 21,900 years ago in the case of Angan speakers. There is evidence for a language-gene correlation for the central clades of TNG up to 16,650 years ago. This increases to 18,875 years ago when we look at the correlation solely within TNG speaking individuals. Kainantu-Goroka speakers show a younger time-depth than Angan speakers, 13,950, despite this being the most sampled langauge clade.
+
+# Limitations
+
+1.  Our linguistic sample is limited to only a sub-sample of TNG history.
+    1.  TNG is a family of between 100 - 400 languages, of which we sample very few. However the family's reach continues far beyond where our sample reaches.
+    2.  We also do not sample all branches of TNG within the region. We have used an opportunistic sample. More targeted sampling of the languages and their diversity is an obvious route for finding new and deeper information on the genetic and linguistic history of the region.
+    3.  A diversified sample of genetic and linguistic diversity could overturn these results, but equally, they could speak to the spread of TNG.
+2.  mtDNA is only a small part of the genetic history of New Guinea.
+    1.  The prevalence of patrlineal descent across cultural groups in New Guinea means we might expect to see a stronger correlation effect within the Y Chromosome.
+        1.  However, of our sample, only one person reports that their parents speak languages from different language clades - suggesting marrying within language clades in common.
+    2.  Application of this method to Autosomal DNA might provide a more complex historical study.
+3.  We are modelling the outcomes of a phylogenetic model.
+    1.  Phylogenetic models are based on a range of assumptions about the rate and types of change we can observe in DNA.
+    2.  Although these are largely well understood, it is still the case that our inference on the role of linguistic channels on genetic diversity is a model based on models.
+4.  The idea of a primary language is an anthropologically complex topic. Since we draw data from many studies, we cannot be certain that the question was asked in a comparable way between studies.
+5.  We only analyse languages at the clade level, and not the language level. It is, of course, possible to analyse the data at a lower level of granularity. The issue is that we need pairs of individuals in order to make the probability calculations. Since there are so many languages in New Guinea, and relatively few genetic samples, analysis at this level will lead to dropping most of the data.
+    1.  Clade is also an abritrary choice- we have tried to use language clades at an acceptable sub-family level, however.
+
+# Future directions
+
+1.  This analysis shows that there is some evidence of gene-language correlation in TNG speaking communities.
+    1.  Including more anthropological information (kinship systems) alongside more genetic data (Y-chromosome, Autosomal) creates an incredible amount of data to further examine this relationship with.
+2.  Extend the linguistic and anthropological evidence of agricultural expansion
+    1.  Broader reconstruction of agricultural crops and importantly technology
+        1.  Transnewguinea.org?
+    2.  Spread of agricultural practice?
+
+# References
