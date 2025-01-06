@@ -540,4 +540,4 @@ TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
 write.csv(genetic_data, 'processed_data/genetic_samples.csv', row.names = FALSE, na = "")
 
 # Only mainland PNG data
-write.csv(TNG, "./processed_data//TNGData.csv", row.names = FALSE)
+write.csv(TNG, "./processed_data/TNGData.csv", row.names = FALSE)

@@ -4,16 +4,15 @@ library(ape)
 library(phangorn)
 
 duplicates = read.csv("processed_data/genetic_duplicates.csv")
-
-trees  = read.nexus("data/full_model-all.noburnin.trees")
+metadata = read.csv("processed_data//TNGData.csv")
+trees  = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.noburnin.trees") 
+mcct.tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.mcct.trees") 
 
 tt = trees[[1]]
 
 dup_sets = split(duplicates, duplicates$mutations_sets)
 
-i = 2
-
-t2 = lapply(trees[1:100], function(tt) {
+t2 = lapply(trees[1:10000], function(tt) {
   for (i in seq_along(dup_sets)) {
     set = dup_sets[[i]]
 
@@ -22,10 +21,6 @@ t2 = lapply(trees[1:100], function(tt) {
       # should always be one
       exists = set[set$PhyID %in% tt$tip.label, ]
       
-      print(exists$PhyID)
-      print(to_add$PhyID)
-      
-      print(" ")
       tt = add.tips(tt, to_add$PhyID, exists$PhyID)
     }
   }
@@ -33,13 +28,30 @@ t2 = lapply(trees[1:100], function(tt) {
 })
 
 
+## MCCT Dup Tips
 for (i in seq_along(dup_sets)) {
   set = dup_sets[[i]]
   
-  print(sum(set$PhyID %in% trees[[1]]$tip.label))
-} 
-  
-  
-  
+  if (any(set$PhyID %in% mcct.tree$tip.label)) {
+    to_add = set[!set$PhyID %in% mcct.tree$tip.label, ]
+    # should always be one
+    exists = set[set$PhyID %in% mcct.tree$tip.label, ]
     
-# }
+    mcct.tree = add.tips(mcct.tree, to_add$PhyID, exists$PhyID)
+  }
+}
+
+
+write.nexus(t2, file = "/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips.trees")
+write.nexus(mcct.tree, file = "/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.mcct.duptips.trees")
+
+# Checks
+# length(t2[[1]]$tip.label)
+# # length(unique(duplicates$PhyID)) == length(duplicates$PhyID)
+# all(duplicates$PhyID %in% t2[[1]]$tip.label)
+# 
+# which(!duplicates$PhyID %in% t2[[1]]$tip.label)
+# 
+# duplicates[!duplicates$PhyID %in% t2[[1]]$tip.label,]
+# 
+# sum(duplicates$PhyID %in% t2[[1]]$tip.label) / nrow(duplicates)

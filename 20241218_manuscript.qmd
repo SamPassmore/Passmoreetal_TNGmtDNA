@@ -203,39 +203,43 @@ The plot below shows this result. The phylogeny shows the Maximum Clade Credibil
 
 source("analysis/helper.R")
 
-mcct_tree = read.nexus("NCI/20240910_CBESbModelTest_ALL/full_model-all.mcct.trees") 
+mcct_tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.mcct.duptips.trees") 
 mcct_depth = mean(adephylo::distRoot(mcct_tree))
 
-# tng_results = read.csv("results/TNG_full_model-all.noburnin_probability_summary.csv")
-# tng_permutations = read.csv("results/TNG_full_model-all.noburnin_permutedsummary.csv")
-# 
-# tng_results = tng_results[tng_results$generation < mcct_depth,]
-# tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]
-# 
-# tng_summary = summarizer(tng_results)
-# tng_summary_p = summarizer(tng_permutations)
-# 
+tng_results = read.csv("results/TNG_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_probability_summary.csv")
+tng_permutations = read.csv("results/TNG_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_permutedsummary.csv")
+
+tng_results = tng_results[tng_results$generation < mcct_depth,]
+tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]
+
+tng_summary = summarizer(tng_results)
+tng_summary_p = summarizer(tng_permutations)
+
 # write.csv(tng_summary, "processed_data/TNG_summary.csv")
 # write.csv(tng_summary_p, "processed_data/TNG_summary_p.csv")
 
-tng_summary = read.csv("processed_data/TNG_summary.csv")
-tng_summary_p = read.csv("processed_data/TNG_summary_p.csv")
+# tng_summary = read.csv("processed_data/TNG_summary.csv")
+# tng_summary_p = read.csv("processed_data/TNG_summary_p.csv")
 
-tng_tree = keep.tip(mcct_tree, TNG_metadata$PhyID[!is.na(TNG_metadata$TNG)])
-tree_data = full_join(tng_tree, TNG_metadata, by = c(label = "PhyID"))
+TNG_df = TNG_metadata %>% dplyr::filter(PhyID %in% mcct_tree$tip.label)
 
-tree_line_plot(tree_data, tng_summary, tng_summary_p, variable = "TNG") + 
-  geom_vline(xintercept = 16650,  linetype="dotted")
+tng_tree = keep.tip(mcct_tree, TNG_df$PhyID[!is.na(TNG_df$TNG)])
+tree_data = full_join(tng_tree, TNG_df, by = c(label = "PhyID"))
 
-# when does the data probability seperate from the permutation probability
-# true_perm = left_join(tng_summary, tng_summary_p, by = c("generation"),
-#                       suffix = c(".true", ".perm"))
-# idx = which(true_perm$CI_low.true > true_perm$CI_high.perm) 
-# head(true_perm[idx,])
+tree_line_plot(tree_data, tng_summary, tng_summary_p, variable = "TNG")
 
-# when does the data probability rejoin from the permutation probability
-# idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > 2250)
-# head(true_perm[idx,])
+# # when does the data probability seperate from the permutation probability
+true_perm = left_join(tng_summary, tng_summary_p, by = c("generation"),
+                      suffix = c(".true", ".perm"))
+idx = which(true_perm$CI_low.true > true_perm$CI_high.perm)
+head(true_perm[idx,])
+
+# # when does the data probability rejoin from the permutation probability
+idx = (true_perm$CI_low.true > true_perm$CI_high.perm)
+true_perm %>% filter(idx) %>% select(generation, CI_low.true, CI_high.perm) %>% View()
+
+sum(true_perm$generation[idx] > 4000 & true_perm$generation[idx] < 13575)
+length(seq(from = 4150, to = 9025, by = 25))
 
 ```
 
@@ -255,37 +259,6 @@ I am not 100% sure what this result is telling us. The general idea is that perm
 :::
 ::::
 
-```{r distance}
-#| fig-cap: "Probability of two individuals within a genetic clade being within 6, 12, 24, or 48 hours walking from each other, according to Tobler's walking function (green). The blue line is repeated from the previous figure, showing the probability of speaking a TNG langauge within a genetic clade."
-#| cap-location: bottom
-#| fig-height: 5
-
-distance48 = read.csv("results/TNG_Branch_full_model-all.noburnin_48hsummary.csv")
-distance24 = read.csv("results/TNG_Branch_full_model-all.noburnin_24hsummary.csv")
-distance12 = read.csv("results/TNG_Branch_full_model-all.noburnin_12hsummary.csv")
-distance6 = read.csv("results/TNG_Branch_full_model-all.noburnin_6hsummary.csv")
-
-distance_summary = lapply(list(
-                        verylong = distance48[distance48$generation < mcct_depth,],
-                        long = distance24[distance24$generation < mcct_depth,],
-                        medium = distance12[distance12$generation < mcct_depth,],
-                        short = distance6[distance6$generation < mcct_depth,]), 
-                        summarizer)
-
-distance_summary = bind_rows(distance_summary, .id = "distance")
-distance_summary$distance = factor(distance_summary$distance, 
-                                   levels = c("short", "medium", "long", "verylong"))
-
-facet_names = c(`short` = "w/n 6hr",
-                `medium` = "w/n 12hr",
-                `long` = "w/n 24hr",
-                `verylong` = "w/n 48hr")
-
-p_TNGBranch_N_Dist = Dist_Plot(tng_summary, distance_summary, facet_names)
-
-p_TNGBranch_N_Dist
-```
-
 ## Hypothesis 2
 
 We are confident that TNG speakers show a distinct genetic signal to non-TNG speakers. Next we are interested in whether that correlation persists for all sub-clades of TNG, or if the effect is stronger or deeper for different clades. We have genetic samples from 8 TNG sub-clades, which are unevenly sampled. The majority speak Kainantu-Goroka languages (n = 87), followed by Chimbu-Wahgi languages (45), Angan (38), Bosavi (20), Enga-Kewa-Huli (18), Madang (2), Ok-Oksapmin (1), and Mailuan (1). Since our probability calculation relies on pairs, it is impossible for Ok-Oksapmin and Mailuan to show any positive relationship, and very unlikely for Madang. These individuals are kept in the analysis because they will influence the denominator calculation.
@@ -301,38 +274,36 @@ The posterior distribution for this analysis is only 500 trees because my comput
 #| cap-location: bottom
 #| fig-height: 5
 
-# TNG_metadata = read.csv("data/TNGBranchData.csv")
-# 
-# tng_results = read.csv("results/TNG_Branch_full_model-all.noburnin_probability_summary.csv")
-# tng_permutations = read.csv("results/TNG_Branch_full_model-all.noburnin_permutedsummary.csv")
-# 
-# tng_results = tng_results[tng_results$generation < mcct_depth,]
-# tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]
-# 
-# posterior_summary = summarizer(tng_results)
-# permuted_summary = summarizer(tng_permutations)
-# 
+tng_results = read.csv("results/TNG_Branch_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_probability_summary.csv")
+tng_permutations = read.csv("results/TNG_Branch_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_permutedsummary.csv")
+
+tng_results = tng_results[tng_results$generation < mcct_depth,]
+tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]
+
+posterior_summary = summarizer(tng_results)
+permuted_summary = summarizer(tng_permutations)
+
 # write.csv(posterior_summary, "processed_data/tng_bytraitresults.csv")
 # write.csv(permuted_summary, "processed_data/tng_permuted_bytraitresults.csv")
 
-posterior_summary = read.csv("processed_data/tng_bytraitresults.csv")
-permuted_summary = read.csv("processed_data/tng_permuted_bytraitresults.csv")
+# posterior_summary = read.csv("processed_data/tng_bytraitresults.csv")
+# permuted_summary = read.csv("processed_data/tng_permuted_bytraitresults.csv")
 
-tng_tree = keep.tip(mcct_tree, TNG_metadata$PhyID[!is.na(TNG_metadata$TNG)])
-tree_data = full_join(tng_tree, TNG_metadata, by = c(label = "PhyID"))
+tng_tree = keep.tip(mcct_tree, TNG_df$PhyID[!is.na(TNG_df$TNG)])
+tree_data = full_join(tng_tree, TNG_df, by = c(label = "PhyID"))
 
 tree_line_plot(tree_data, posterior_summary, permuted_summary, variable = "TNG_Branch") + 
   geom_vline(xintercept = 18875,  linetype="dotted")
 
 # when does the data probability seperate from the permutation probability
-# true_perm = left_join(posterior_summary, permuted_summary, by = c("generation"),
-#                       suffix = c(".true", ".perm"))
-# idx = which(true_perm$CI_low.true > true_perm$CI_high.perm)
-# head(true_perm[idx,])
+true_perm = left_join(posterior_summary, permuted_summary, by = c("generation"),
+                      suffix = c(".true", ".perm"))
+idx = which(true_perm$CI_low.true > true_perm$CI_high.perm)
+head(true_perm[idx,])
 
 # when does the data probability rejoin from the permutation probability
-# idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > 2250)
-# head(true_perm[idx,])
+idx = which(true_perm$CI_low.true < true_perm$CI_high.perm & true_perm$generation > min(true))
+tail(true_perm[idx,])
 ```
 
 This graph shows similar results to before: there is no evidence of a correlation within the last 1,275 years, again this is likely because of a small number of coalescent events before this data. From 1,275 years ago to 19,250 there is a statistical separation between the observed distribution of language-clades from chance.
@@ -340,25 +311,25 @@ This graph shows similar results to before: there is no evidence of a correlatio
 To see how this probability is distributed between language clades, we show the probability over the last 20,000 years, stacked by the contribution of each language clade. Note that there is only one sample for the langauge branches Ok-Oksapmin, and Mailuan, and only two for Madang. Since this analysis relies on many pairs of individuals, we do not analyse them further.
 
 ```{r by_trait}
-# tng_branch = read.csv("results/TNG_Branch_full_model-all.noburnin_probability_bytrait.csv")
-# tb_permuted = read.csv("results/TNG_Branch_full_model-all.noburnin_permutedbytrait.csv")
-# 
-# tngbranch_summary = tng_branch %>%
-#   filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-#   dplyr::filter(generation <= mcct_depth) %>%
-#   dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan")) %>%
-#   group_by(generation, state) %>%
-#   summarise(
-#     mean_clade_probability = mean(clade_probability, na.rm = TRUE),
-#     ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
-#     # 95% credible interval
-#     n_matches = sum(numerator_sum)
-#   ) %>%
-#   tidyr::unpack(ci_hdi)
-# 
+tng_branch = read.csv("results/TNG_Branch_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_probability_bytrait.csv")
+tb_permuted = read.csv("results/TNG_Branch_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_permutedbytrait.csv")
+
+tngbranch_summary = tng_branch %>%
+  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+  dplyr::filter(generation <= mcct_depth) %>%
+  dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan")) %>%
+  group_by(generation, state) %>%
+  summarise(
+    mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+    ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
+    # 95% credible interval
+    n_matches = sum(numerator_sum)
+  ) %>%
+  tidyr::unpack(ci_hdi)
+
 # write.csv(tngbranch_summary, "processed_data/tng_bytraitresults2.csv")
 
-tngbranch_summary = read.csv("processed_data/tng_bytraitresults2.csv")
+# tngbranch_summary = read.csv("processed_data/tng_bytraitresults2.csv")
 
 ggplot() + 
   geom_area(data = tngbranch_summary,
@@ -381,21 +352,21 @@ This shows that the marjority of the probability is made up by Kainantu-Goroka s
 Since Kainantu-Goroka and Chimbu-Wahgi speakers are also the most commonly sampled, it is possible that their contribution to the probability is due to their frequency in the sample, rather than have a stronger correlation between genes and language. To do this, we parse out the probability for each langauge clade and compare the result to a permutation, as we did in hypothesis 1. We do this for Kainantu-Goroka, Chimbu-Wahgi, Angan, Bosavi, and Enga-Kewa-Huli.
 
 ```{r by_trait_perms}
-# tbp_summary = tb_permuted %>%
-#   filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-#   dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan")) %>%
-#   dplyr::filter(generation <= mcct_depth) %>%
-#   group_by(generation, state) %>%
-#   summarise(
-#     mean_clade_probability = mean(clade_probability, na.rm = TRUE),
-#     ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
-#     # 95% credible interval
-#     n_matches = sum(numerator_sum)
-#   ) %>%
-#   tidyr::unpack(ci_hdi)
-# 
+tbp_summary = tb_permuted %>%
+  filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+  dplyr::filter(!state %in% c("Ok-Oksapmin", "Madang", "Mailuan")) %>%
+  dplyr::filter(generation <= mcct_depth) %>%
+  group_by(generation, state) %>%
+  summarise(
+    mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+    ci_hdi = bayestestR::ci(clade_probability, method = "HDI"),
+    # 95% credible interval
+    n_matches = sum(numerator_sum)
+  ) %>%
+  tidyr::unpack(ci_hdi)
+
 # write.csv(tbp_summary, "processed_data/tng_permuted_bytraitresults2.csv")
-tbp_summary = read.csv("processed_data/tng_permuted_bytraitresults2.csv")
+# tbp_summary = read.csv("processed_data/tng_permuted_bytraitresults2.csv")
 
 ggplot(tngbranch_summary,aes(
                      ymin = CI_low,
@@ -447,6 +418,65 @@ ggplot(tngbranch_summary,aes(
 Only Angan and Kainantu-Goroka show gene-language correlations. Angan shows statistical differentiation from chance starting 2,300 years ago, until 21,900 years ago - slightly longer than the combined result. Kainantu-Goroka shows a statistical differentiation starting from 2,400, until 13,950 - much younger than the overall result.
 
 The permutation test shows that gene-language associations are not solely due to the sampling frequencies of different language cladesin Kainantu-Goroka and Angan. In the remaining langauge clades we do not observe any relationship between genetic clades and linguistic affiliation. It is difficult to know whether this is because of a low sample size or a real effect. Notably, Chimbu-Wahgi has a larger number of individuals than Angan, but no correlation between langauge and genes. In the case of Bosavi and Enga-Kewa-Huli speakers, low sample size may be an influence.
+
+## Parental Languages
+
+### Paternal Language
+
+```{r}
+#| fig-cap: "Probability of two individuals within a genetic clade where their Father speaks a language from the same TNG clade."
+#| cap-location: bottom
+#| fig-height: 5
+
+tng_f_results = read.csv("results/TNG_Branch.father_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_probability_summary.csv")
+tng_f_permutations = read.csv("results/TNG_Branch.father_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_permutedsummary.csv")
+
+tng_f_results = tng_f_results[tng_f_results$generation < mcct_depth,]
+tng_f_permutations = tng_f_permutations[tng_f_permutations$generation < mcct_depth,]
+
+posterior_summary = summarizer(tng_f_results)
+permuted_summary = summarizer(tng_f_permutations)
+
+# write.csv(posterior_summary, "processed_data/tng_bytraitresults.csv")
+# write.csv(permuted_summary, "processed_data/tng_permuted_bytraitresults.csv")
+
+# posterior_summary = read.csv("processed_data/tng_bytraitresults.csv")
+# permuted_summary = read.csv("processed_data/tng_permuted_bytraitresults.csv")
+
+tng_tree = keep.tip(mcct_tree, TNG_df$PhyID[!is.na(TNG_df$TNG)])
+tree_data = full_join(tng_tree, TNG_df, by = c(label = "PhyID"))
+
+tree_line_plot(tree_data, posterior_summary, permuted_summary, variable = "TNG_Branch") + 
+  geom_vline(xintercept = 18875,  linetype="dotted")
+```
+
+### Maternal Language
+
+```{r}
+#| fig-cap: "Probability of two individuals within a genetic clade where their Mother speaks a language from the same TNG clade."
+#| cap-location: bottom
+#| fig-height: 5
+
+tng_m_results = read.csv("results/TNG_Branch.mother_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_probability_summary.csv")
+tng_m_permutations = read.csv("results/TNG_Branch.mother_20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips_permutedsummary.csv")
+
+tng_m_results = tng_m_results[tng_m_results$generation < mcct_depth,]
+tng_m_permutations = tng_m_permutations[tng_m_permutations$generation < mcct_depth,]
+
+posterior_summary = summarizer(tng_m_results)
+permuted_summary = summarizer(tng_m_permutations)
+
+# write.csv(posterior_summary, "processed_data/tng_bytraitresults.csv")
+# write.csv(permuted_summary, "processed_data/tng_permuted_bytraitresults.csv")
+
+# posterior_summary = read.csv("processed_data/tng_bytraitresults.csv")
+# permuted_summary = read.csv("processed_data/tng_permuted_bytraitresults.csv")
+
+tng_tree = keep.tip(mcct_tree, TNG_df$PhyID[!is.na(TNG_df$TNG)])
+tree_data = full_join(tng_tree, TNG_df, by = c(label = "PhyID"))
+
+tree_line_plot(tree_data, posterior_summary, permuted_summary, variable = "TNG_Branch")
+```
 
 # Conclusion
 

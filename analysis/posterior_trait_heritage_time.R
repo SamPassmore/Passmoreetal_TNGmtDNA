@@ -20,14 +20,14 @@ option_list = list(
   make_option(
     c("-t", "--tree"),
     action = "store",
-    default = "./data/full_model-all.noburnin.trees",
+    default = "/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips.trees",
     type = 'character',
     help = "the location of the tree to use"
   ),
   make_option(
     c("-n", "--ntree"),
     action = "store",
-    default = 3,
+    default = 1,
     type = 'numeric',
     help = "the numer of trees to analyse"
   ),
@@ -41,7 +41,7 @@ option_list = list(
   make_option(
     c("-m", "--metadata"),
     action = "store",
-    default = "data/TNGBranchData.csv",
+    default = "./processed_data/TNGData.csv",
     type = 'character',
     help = "the metadata file"
   ),
@@ -55,7 +55,7 @@ option_list = list(
   make_option(
     c("-p", "--ptree"),
     action = "store",
-    default = 3,
+    default = 1,
     type = 'numeric',
     help = "the number of trees to analyse for the permutations step"
   ),
@@ -77,11 +77,14 @@ set.seed(opt$seed)
 #n_cores = parallel::detectCores()
 n_cores = 4
 n_tree = opt$ntree
+p_tree = opt$ptree
 
 ## Read in the tree ####
 trees = ape::read.nexus(tree_file)
+print(length(trees))
 # sample posterior
-idx = sample(1:length(trees), size = n_tree)
+# idx = sample(1:length(trees), size = n_tree)
+idx = (length(trees) - (n_tree - 1)):length(trees)
 trees = trees[idx]
 
 ## Prepare filenames for saving
@@ -127,7 +130,7 @@ generation_time = 25
 
 cat("Calculating the probability of sharing a language given the phylogeny...\n")
 
-language_probability = mclapply(tree_pruned[1:n_tree], function(t)
+language_probability = mclapply(tree_pruned, function(t)
   traitheritage::trait_heritage(t, trait = trait, generation_time = generation_time),
   mc.preschedule = TRUE,
   mc.cores = n_cores)
@@ -146,10 +149,10 @@ rm(language_probability)
 
 cat("Calculating the probability of sharing a language by chance (permutation tests)...\n")
 
-perm_prob = mclapply(tree_pruned[1:n_tree], function(t)
+perm_prob = mclapply(tree_pruned, function(t)
   permute_trait_heritage(t, trait = trait,
                                         generation_time = generation_time,
-                                        n_permutations = 5),
+                                        n_permutations = p_tree),
   mc.preschedule = TRUE,
   mc.cores = n_cores)
 
@@ -159,8 +162,8 @@ permutationprobability_summary = lapply(perm_prob, "[[", "summary")
 permutationprobability_bytrait = data.table::rbindlist(permutationprobability_bytrait, idcol = "posterior")
 permutationprobability_summary = data.table::rbindlist(permutationprobability_summary, idcol = "posterior")
 
-write.csv(permutationprobability_bytrait, paste0(base_name, "_permutedbytrait2.csv"), row.names = FALSE)
-write.csv(permutationprobability_summary, paste0(base_name, "_permutedsummary2.csv"), row.names = FALSE)
+write.csv(permutationprobability_bytrait, paste0(base_name, "_permutedbytrait.csv"), row.names = FALSE)
+write.csv(permutationprobability_summary, paste0(base_name, "_permutedsummary.csv"), row.names = FALSE)
 
 rm(perm_prob)
 
