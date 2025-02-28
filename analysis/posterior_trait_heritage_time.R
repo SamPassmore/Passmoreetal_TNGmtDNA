@@ -20,14 +20,14 @@ option_list = list(
   make_option(
     c("-t", "--tree"),
     action = "store",
-    default = "/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips.trees",
+    default = "/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips.trees",
     type = 'character',
     help = "the location of the tree to use"
   ),
   make_option(
     c("-n", "--ntree"),
     action = "store",
-    default = 1,
+    default = 2,
     type = 'numeric',
     help = "the numer of trees to analyse"
   ),
@@ -81,7 +81,7 @@ p_tree = opt$ptree
 
 ## Read in the tree ####
 trees = ape::read.nexus(tree_file)
-print(length(trees))
+
 # sample posterior
 # idx = sample(1:length(trees), size = n_tree)
 idx = (length(trees) - (n_tree - 1)):length(trees)
@@ -102,9 +102,18 @@ trees = lapply(trees, function(t) {
 m_file = opt$metadata
 metadata = read.csv(m_file)
 
-# clean IDs
-# metadata$ID = gsub("-.*","", metadata$ID)
+# TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
+# TNG_dups = TNG_dups[!TNG_dups$PhyID %in% metadata$PhyID,] # subset to the duplicates only
+# 
+# metadata = rbind(metadata, TNG_dups)
 
+cat("There are", nrow(metadata), "taxa in the metadata")
+
+## Remove some errant entries
+# Tok Pisin langauges should be NA since it is a recently arisen langauge.
+metadata = metadata[metadata$interview_language != "Tok Pisin [tpi]",]
+# Baining speakers are unlikely to have come from New Guinea Mainland. This is a metadata mistake. 
+metadata = metadata[metadata$Branch_Family != "Baining",]
 # subset to taxa in the phylogeny
 metadata_ss = metadata[metadata$ID %in% trees[[1]]$tip.label,]
 
@@ -118,7 +127,8 @@ names(trait) = metadata_ss$ID
 # Missing values should be NA
 trait[trait == ""] = NA
 # NotTNG values should be NA
-trait[trait == "NotTNG"] = NA
+# trait[trait == "NotTNG"] = NA
+
 trait = trait[!is.na(trait)]
 
 ## Prune the tree to match the tips

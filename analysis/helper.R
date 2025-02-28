@@ -1,15 +1,28 @@
 # helper script for Supplemantary materials
 
-summarizer = function(posterior){
+summarizer = function(posterior, permuted_results = FALSE){
   posterior$generation = as.numeric(gsub("g_", replacement = "", posterior$generation))
-  # posterior$clade_probability = posterior$numerator / posterior$numerator
-  posterior %>%
-    filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-    group_by(generation) %>%
-    summarise(mean_clade_probability = mean(clade_probability, na.rm = TRUE),
-              ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
-              n_matches = sum(numerator_sum)) %>% 
-    tidyr::unpack(ci_hdi)
+  
+  if(permuted_results){
+    out = posterior %>%
+      filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+      group_by(generation, posterior) %>%
+      summarise(wntree_cladeprob = mean(clade_probability, na.rm = TRUE)) %>% 
+      ungroup() %>% 
+      group_by(generation) %>% 
+      summarise(mean_clade_probability = mean(wntree_cladeprob, na.rm = TRUE),
+                ci_hdi = bayestestR::ci(wntree_cladeprob)) %>% 
+      tidyr::unpack(ci_hdi)  
+  } else {
+    out = posterior %>%
+      filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
+      group_by(generation) %>%
+      summarise(mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+                ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
+                n_matches = sum(numerator_sum)) %>% 
+      tidyr::unpack(ci_hdi)  
+  }
+  out
 }
 
 ## Tree + Line Plots
@@ -18,9 +31,10 @@ tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variab
   p_tree = ggtree(tree_data, size = 0.05) + 
     # geom_tippoint(aes(col = factor(!!variable)), shape = "\u2588", size = 12) +
     geom_tippoint(aes(col = factor(!!variable)), shape = "I", size = 4) +
-    scale_y_continuous(breaks = c(10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000),
+    scale_x_continuous(breaks = c(10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000),
                        labels = c("10k", "20k", "30k", "40k", "50k", "60k", "70k", "80k")) +
     scale_fill_discrete(name = NULL) + 
+    scale_color_manual(values = c("#FFCD00", "#C8102E")) +
     layout_dendrogram() + 
     theme(legend.position = "bottom", 
           axis.ticks.y = element_line(),
@@ -33,15 +47,15 @@ tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variab
   
   p_prob = ggplot(data = posterior_summary,
                   aes(ymin = CI_low, ymax = CI_high, x = generation, y = mean_clade_probability)) +
-    geom_ribbon(fill = "lightblue", alpha = 0.5) +
-    geom_line(col = "blue") +
+    geom_ribbon(fill = "#F8D1D7", alpha = 0.5) +
+    geom_line(col = "#C8102E") +
     geom_ribbon(data = permuted_summary,
                 aes(ymin = CI_low, ymax = CI_high, x = generation, y = mean_clade_probability),
-                fill = "lightgreen", alpha = 0.5) +
+                fill = "lightblue", alpha = 0.5) +
     geom_line(data = permuted_summary,
               aes(x = generation, y = mean_clade_probability),
-              col = "forestgreen") +
-    ylim(c(0, 1)) +
+              col = "#00274D") +
+    # ylim(c(0, 0.5)) +
     xlim(x_range) + ## max tree height (or max p_tree?)
     coord_flip() +
     xlab("") + 

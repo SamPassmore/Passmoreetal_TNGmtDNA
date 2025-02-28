@@ -33,7 +33,8 @@ genetic_sheet1 = genetic_sheet1 %>%
                 interview_language = "Ind Lang from interview",
                 language_fromcoords = "Ind lang from gps",
                 haplogroup = "Haplogroup",
-                mutations_fromRCRS = "Mutations relative to Rcrs"
+                mutations_fromRCRS = "Mutations relative to Rcrs",
+                citation = "Reference"
   )
 
 # Remove completely empty rows
@@ -96,7 +97,8 @@ genetic_sheet2 = genetic_sheet2 %>%
                 paternal_language = "Paternal Language Interview",
                 maternal_language = "Maternal Language Interview",
                 paternal_language_inferred = "Paternal Language inferred gps"	,
-                maternal_language_inferred = "Maternal Language inferred gps")
+                maternal_language_inferred = "Maternal Language inferred gps",
+                citation = "Reference")
 
 ## Not all rows have IDs in this sheet
 ## Create unique IDs from the reference sequence ID
@@ -143,7 +145,8 @@ genetic_sheet3 = genetic_sheet3 %>%
     mother_language_glottocode = "M2_LanguageCode_Glottolog",
     mother_languagefamily = "M2_LanguageFamily_Glottolog",
     haplogroup = "Haplogroup",
-    mutations_fromRCRS = "Mutations relative to Rcrs")
+    mutations_fromRCRS = "Mutations relative to Rcrs",
+    citation = "Reference")
 
 genetic_sheet3$interview_language[is.na(genetic_sheet3$interview_language)] = ""
 
@@ -194,7 +197,8 @@ genetic_sheet4 = genetic_sheet4 %>%
                 mother_language_glottocode = "M2_LanguageCode_Glottolog",
                 mother_languagefamily = "M2_LanguageFamily_Glottolog",
                 haplogroup = "Haplogroup",
-                mutations_fromRCRS = "Mutations relative to Rcrs")
+                mutations_fromRCRS = "Mutations relative to Rcrs",
+                citation = "Reference")
 
 genetic_sheet4$ID = as.character(genetic_sheet4$ID)
 
@@ -403,11 +407,11 @@ tng = read.csv('data/language_families.csv')
 ## Adding Branch data
 genetic_data = left_join(genetic_data, tng, by = "interview_language")
 ## Adding Branch data for father / mother
-genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "TNG_Branch")], 
+genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "Branch_Family", "TNG_Branch")], 
                by = c("father_language" = "interview_language"),
                suffix = c("", ".father"))
 
-genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "TNG_Branch")], 
+genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "Branch_Family", "TNG_Branch")], 
                by = c("mother_language" = "interview_language"),
                suffix = c("", ".mother"))
 
@@ -448,12 +452,23 @@ cat(sum(!is.na(TNG$interview_language)),
     "individuals provide language data, from a total of",
     nrow(TNG), "individuals")
 
-
 # If there is no language recorded, use the inferred language data 
 cat("We could infer the language for", 
     sum(is.na(TNG$interview_language) & !is.na(TNG$language_fromcoords)),
     "individuals, from a total of",
     nrow(TNG), "individuals. But we do not currently")
+
+## Identify Austronesian languages
+TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
+                                                 "Adzera [adz]",
+                                                 "Kilivila [kij]",
+                                                 "Maisin [mbq]",
+                                                 "Mutu [tuc]",
+                                                 "Nyindrou [lid]",
+                                                 "Suau [swp]",
+                                                 "Waima [rro]",
+                                                 "Kuanua [ksd]")
+
 
 #### Picking the right language ####
 ## There are some genetic duplicates, of the duplicate we need to choose the individual with the most reliable metadata
@@ -466,7 +481,10 @@ split_byset = split(TNG[,c("PhyID", "mutations_sets", "interview_language", "lat
 idx = sapply(split_byset, nrow) > 1
 duplicates = do.call(rbind, split_byset[idx])
 
+duplicate_data = TNG[TNG$PhyID %in% duplicates$PhyID,]
+
 write.csv(duplicates, "processed_data/genetic_duplicates.csv")
+write.csv(duplicate_data, "processed_data/genetic_duplicate_data.csv", row.names = FALSE)
 
 dup_sets = sum(sapply(split_byset, nrow) > 1)
 
@@ -523,17 +541,6 @@ for(i in unique(TNG$mutations_sets)){
 
 nrow(TNG)
 n_distinct(TNG$mutations_fromRCRS) == nrow(TNG)
-
-## Identify Austronesian languages
-TNG$Austronesian = TNG$interview_language %in% c("Abadi [kbt]",
-                                                 "Adzera [adz]",
-                                                 "Kilivila [kij]",
-                                                 "Maisin [mbq]",
-                                                 "Mutu [tuc]",
-                                                 "Nyindrou [lid]",
-                                                 "Suau [swp]",
-                                                 "Waima [rro]",
-                                                 "Kuanua [ksd]")
 
 #### Write the raw data ####
 # All Formatted data

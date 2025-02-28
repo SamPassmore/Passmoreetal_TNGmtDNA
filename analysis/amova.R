@@ -5,49 +5,53 @@ library(assertthat)
 library(pegas)
 library(adegenet)
 library(mmod)
-library(poppr)
 library(phangorn)
 library(seqinr)
 
 
 # Load genetic alignments
-fasta_files = list.files("processed_data/", pattern = ".fasta", full.names = TRUE)
-fasta_data = read.multiFASTA(fasta_files)
-fasta_data = read.fasta("processed_data/papua_all.fasta")
+# fasta_files = list.files("processed_data/", pattern = ".fasta", full.names = TRUE)
+# fasta_data = read.multiFASTA(fasta_files)
+# fasta_data = read.fasta()
+fasta_data = apex::read.multiFASTA("processed_data/all_data.fasta")
 # And Genetic metadata
-metadata = read.csv("processed_data/genetic_samples.csv", na.strings = "") 
+metadata = read.csv("processed_data/TNGData.csv")
+## Add in duplicate metadata
+TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
+TNG_dups = TNG_dups[!TNG_dups$PhyID %in% metadata$PhyID,] # subset to the duplicates only
+
+metadata = rbind(metadata, TNG_dups)
+
 # order metadata to match fasta data
-metadata = metadata[match(fasta_data@labels, metadata$ID),]
-metadata = metadata[match(names(fasta_data), metadata$ID),]
+metadata = metadata[match(fasta_data@labels, metadata$PhyID),]
 
 # Check that metadata and fasta align
-assert_that(all(fasta_data@labels %in% metadata$ID))
-assert_that(all(fasta_data@labels == metadata$ID))
+assert_that(sum(fasta_data@labels %in% metadata$PhyID) == 317)
 
 # determine which language families we have data for
 families = metadata %>% 
-  group_by(Family_ID) %>% 
+  group_by(Branch_Family) %>% 
   summarise(n = n()) %>% 
   filter(n >= 8) %>% 
-  pull(Family_ID) %>%
+  pull(Branch_Family) %>%
   na.omit()
 
 # Reduce the genetic data to language families with sufficient coverage
-keep_individuals = metadata$ID[metadata$Family_ID %in% families]
+keep_individuals = metadata$PhyID[metadata$Branch_Family %in% families]
 fasta_data_wLanguage = fasta_data[keep_individuals]
 
 language_strata = metadata %>%
-  filter(ID %in% keep_individuals) %>% 
-  select(assigned_language, Family_ID, haplogroup_MN)
+  filter(PhyID %in% keep_individuals) %>% 
+  select(interview_language, Branch_Family, TNG, haplogroup_MN)
 
-x = assert_that(all(fasta_data_wLanguage@labels == keep_individuals))
+x = assert_that(all(names(fasta_data_wLanguage) == keep_individuals))
 
 # Make Genind object
 fasta_data.gid = multidna2genind(fasta_data_wLanguage, mlst = TRUE)
 
 # add population statification
 strata(fasta_data.gid) <- language_strata
-setPop(fasta_data.gid) <- ~Family_ID
+setPop(fasta_data.gid) <- ~Branch_Family
 
 
 #### Pairwise population differentiation ####
@@ -84,4 +88,6 @@ any(is.nan(as.matrix(mtdna_dist)[language_strata$haplogroup_MN == "M", language_
 any(is.nan(as.matrix(mtdna_dist)[language_strata$haplogroup_MN == "N", language_strata$haplogroup_MN == "N"]))
 any(is.nan(as.matrix(mtdna_dist)))
 
-amova_output = amova(mtdna_dist ~ Family_ID, data = strata(fasta_data.gid), nperm = 100)
+amova_output = amova(mtdna_dist ~  TNG / Branch_Family / interview_language, data = strata(fasta_data.gid), nperm = 100)
+poppr.amova(fasta_data.gid, ~TNG/Branch_Family/interview_language, clonecorrect = TRUE)
+

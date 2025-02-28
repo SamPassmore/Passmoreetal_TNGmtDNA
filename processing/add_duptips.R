@@ -5,14 +5,14 @@ library(phangorn)
 
 duplicates = read.csv("processed_data/genetic_duplicates.csv")
 metadata = read.csv("processed_data//TNGData.csv")
-trees  = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.noburnin.trees") 
-mcct.tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.mcct.trees") 
+trees  = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.trees") 
+mcct.tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.mcct.trees") 
 
 tt = trees[[1]]
 
 dup_sets = split(duplicates, duplicates$mutations_sets)
 
-t2 = lapply(trees[1:10000], function(tt) {
+t2 = lapply(trees, function(tt) {
   for (i in seq_along(dup_sets)) {
     set = dup_sets[[i]]
 
@@ -42,8 +42,8 @@ for (i in seq_along(dup_sets)) {
 }
 
 
-write.nexus(t2, file = "/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.noburnin.duptips.trees")
-write.nexus(mcct.tree, file = "/Volumes/PassmoreSSD/PapuanPast/20241216_CBESbTest_LanguageSample/20241112_CBESbTest_LanguageSample-all_data.mcct.duptips.trees")
+write.nexus(t2, file = "/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips.trees")
+write.nexus(mcct.tree, file = "/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.mcct.duptips.trees")
 
 # Checks
 # length(t2[[1]]$tip.label)
