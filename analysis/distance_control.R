@@ -19,6 +19,12 @@ png_colors <- list(
 )
                     
 ld12_df = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_12hsummary.csv") 
+ld12_df = readRDS("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_12hours.RDS")
+
+head(ld12_df[[1]]$time_df)
+tmp = lapply(ld12_df, function(x) x$time_df)
+tmp = do.call(rbind, tmp)
+
 ld24_df = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_24hsummary.csv") 
 ld48_df = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_48hsummary.csv") 
 
