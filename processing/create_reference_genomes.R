@@ -18,7 +18,8 @@ suppressPackageStartupMessages({
 # rcrs reference genome
 rcrs = Biostrings::readDNAStringSet("data/rcrs.fasta")
 
-genetic_data = read.csv('processed_data/TNGData.csv')
+# genetic_data = read.csv('processed_data/TNGData.csv')
+genetic_data = read.csv('processed_data/genetic_samples.csv')
 
 x = assert_that(length(unique(genetic_data$ID)) == nrow(genetic_data))
 

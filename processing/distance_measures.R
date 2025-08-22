@@ -1,11 +1,13 @@
-library(terra)
-library(dplyr)
-library(raster)
-library(gdistance)
-library(reshape2)
-library(ggplot2)
+suppressPackageStartupMessages({
+  library(terra)
+  library(dplyr)
+  library(raster)
+  library(gdistance)
+  library(reshape2)
+  library(ggplot2)
+})
 
-r = raster("../../newguinea_linguisticdiversity/processed_data/data_layers/new_guinea_elevation.tiff")
+r = raster("data/data_layers/new_guinea_elevation.tiff")
 
 # Read TNG_metadata and re-load dups
 TNG_metadata = read.csv("processed_data/TNGData.csv")
