@@ -1,38 +1,20 @@
-## Haplogroup table
+# Make tree plots
+
 suppressPackageStartupMessages({
   library(ape)
-  library(forcats)
-  library(dplyr)
-  library(kableExtra)
-  library(knitr)
-  library(janitor)
 })
 
 source("analysis/helper.R")
-options(knitr.kable.NA = '-')
 
-# Load Metadata
-TNG_metadata = read.csv("processed_data/TNGData.csv")
-
-## Add in duplicate metadata
-TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
-TNG_dups = TNG_dups[!TNG_dups$PhyID %in% TNG_metadata$PhyID,] # subset to the duplicates only
-
-TNG_metadata = rbind(TNG_metadata, TNG_dups)
-
-TNG_metadata = TNG_metadata[TNG_metadata$interview_language != "Tok Pisin [tpi]",] 
-# Baining speakers are unlikely to have come from New Guinea Mainland. This is a metadata mistake. 
-TNG_metadata = TNG_metadata[TNG_metadata$Branch_Family != "Baining",]
-
-## Get MCCT Tree, and tree depth
 mcct_tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.mcct.duptips.trees") 
 mcct_depth = mean(adephylo::distRoot(mcct_tree))
 
-TNG_metadata = TNG_metadata[TNG_metadata$PhyID %in% mcct_tree$tip.label,]
-
-# Results of TNG binary trait
 tng_results = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_probability_summary.csv")
+
 tng_permutations = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_permutedsummary.csv")
+
+# tng_results = read.csv("results/interview_language_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_probability_summary.csv")
+# tng_permutations = read.csv("results/interview_language_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_permutedsummary.csv")
 
 tng_results = tng_results[tng_results$generation < mcct_depth,]
 tng_permutations = tng_permutations[tng_permutations$generation < mcct_depth,]

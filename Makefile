@@ -23,11 +23,10 @@ help: ## Displays targets and descriptions
 	@echo "Available make targets:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-data_processing: ## Process the genetic and geographic data for phylogenetic analysis
+data_processing: ## Process the genetic data for phylogenetic analysis
 	Rscript processing/format_geneticdata.R
 	Rscript processing/create_reference_genomes.R
-	Rscript processing/distance_measures.R
-	
+
 make_phylogeny: ## Build the phylogeny using BEAST2
 	# This line should run the code to build the phylogeny, although note, we did actually run the analysis on the NCI
 	$(BEAST) -thread 4 analysis/20250106_LanguageSample_CBES_RelaxedClock_Constrained.xml
@@ -111,16 +110,8 @@ All_Branches:
   -p $(PERMUT) \
   -d data/hikingtime_h.RDS
   
-TNG_Distance:
-	RScript analysis/RelativeImportance.R
-  
 ### Make Graphs
 figures: ## Make figures and tables for the paper
-	Rscript analysis/base_map.R
-	Rscript analysis/map.R # map figure for paper
-	Rscript analysis/haplogroup_table.R
-	Rscript analysis/tree_plots.R
-	Rscript analysis/by_languageclade.R
-	# distance control
-	
+	Rscript analysis/map.R # map figure
+	Rscript analysis/haplogroup_table.R # make table of haplogroup frequencies
 	
