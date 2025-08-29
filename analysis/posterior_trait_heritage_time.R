@@ -118,7 +118,7 @@ metadata = metadata[metadata$Branch_Family != "Baining",]
 metadata_ss = metadata[metadata$ID %in% trees[[1]]$tip.label,]
 
 # how many tips are covered
-covered = sum(metadata$ID %in% trees[[1]]$tip.label) / nrow(metadata)
+covered = sum(metadata_ss$ID %in% trees[[1]]$tip.label) / nrow(metadata_ss)
 cat("Matched", round(covered, 2) * 100, "% of the tips to the metadata.\n")
 
 # Isolate trait of interest

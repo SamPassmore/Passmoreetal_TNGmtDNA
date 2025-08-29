@@ -438,21 +438,43 @@ drop_provinces = c("West New Britain",
                    "East New Britain",
                    "New Ireland")
 
-cat("We drop", sum(genetic_data$province %in% drop_provinces) , "samples for being in provinces that are not of interest")
-cat("We drop", sum(str_detect(genetic_data$haplogroup, "B4a")) , "samples for being of Austronesian origin")
-cat("We drop", sum(is.na(genetic_data$interview_language)) , "samples for not having linguistic data")
-
 # These individuals are identified as out of scope.
 drop_ids = c("AY289086", "AY289092", "AY289087",
              "AY289084", "AY289088", "AY289091",
              "AY289081", "AY289090", "AY289085",
              "AY289082", "AY289079", "AY289078")
 
-TNG = genetic_data %>% 
-  filter(!str_detect(haplogroup, "B4a")) %>%  # remove Austronesian
-  filter(!province %in% drop_provinces) %>% 
-  filter(!ID %in% drop_ids) %>%  
-  filter(!is.na(interview_language)) %>% nrow()
+cat("Remove", sum(str_detect(genetic_data$haplogroup, "B4a")), "Austronesian genetic samples")
+TNG = genetic_data[!str_detect(genetic_data$haplogroup, "B4a"),]
+cat("Remove", sum(TNG$province %in% drop_provinces, na.rm = TRUE) +
+      sum(TNG$Branch_Family == "Baining", na.rm = TRUE)
+    , "Eastern Samples")
+TNG = TNG[!TNG$province %in% drop_provinces,]
+TNG = TNG[TNG$Branch_Family != "Baining",]
+cat("Remove", sum(is.na(TNG$interview_language), na.rm = TRUE), "Eastern Samples")
+TNG = TNG[!is.na(TNG$interview_language),] 
+
+# TNG2 = genetic_data %>% 
+#   filter(!str_detect(haplogroup, "B4a")) %>%  # remove Austronesian 885
+#   filter(!province %in% drop_provinces) %>%   # remove samples who are out eaast 813
+#   filter(Branch_Family != "Baining") %>% 
+#   filter(!is.na(interview_language)) # 508 
+# 
+# # 25 Austronesians
+# # 72 out east
+# # 305 no language data
+# 
+#   
+#   
+# TNG3 = genetic_data %>% 
+#   filter(!str_detect(haplogroup, "B4a")) %>%  # remove Austronesian 885 down
+#   filter(!province %in% drop_provinces) %>%  # 701
+#   filter(!ID %in% drop_ids) %>% # 701
+#   filter(!is.na(interview_language)) %>% nrow()  # 396
+# 
+# # 25 Austronesians
+# # 184 Easterns
+# # 305 no language data
 
 cat(sum(!is.na(TNG$interview_language)),
     "individuals provide language data, from a total of",
