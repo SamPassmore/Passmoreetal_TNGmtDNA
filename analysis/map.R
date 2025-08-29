@@ -37,19 +37,22 @@ p = base_map +
     x = long,
     y = lat,
     size = n,
-    col = factor(TNG),
-    shape = factor(TNG)
+    fill = factor(TNG)
   ),
-  alpha = 0.5
+  alpha = 0.6,
+  pch = 21,
+  col = "black",
+  width = 0.2,
+  height = 0.2
   ) + 
-  scale_size_continuous(breaks = c(10, 15, 20, 25)) + 
-  scale_color_manual(labels = c("Not TNG", "TNG"), values = c("#FFCD00", "#C8102E")) + 
-  scale_shape_manual(labels = c("Not TNG", "TNG"), values = c(17, 18)) + 
-  guides(size = guide_legend(title ="N Samples", nrow = 1),
-         col = guide_legend(title = element_blank()),
+  # scale_size_continuous(breaks = c(10, 15, 20, 25)) + 
+  scale_fill_manual(labels = c("Not TNG", "TNG"), values = c("#FFCD00", "#C8102E")) + 
+  # scale_shape_manual(labels = c("Not TNG", "TNG"), values = c(17, 18)) + 
+  guides(size = guide_legend(title ="N Samples"),
+         fill = guide_legend(title = element_blank(), override.aes = list(size=5)),
          shape = guide_legend(title = element_blank())) + 
-  theme(legend.position = "bottom", 
+  xlim(140, 152) + 
+  theme(legend.position = "right", 
         axis.title = element_blank())
 
-
-ggsave(filename = "figures/map_figure.png")
+ggsave(filename = "figures/map_figure.png", width = 7, height = 5)
