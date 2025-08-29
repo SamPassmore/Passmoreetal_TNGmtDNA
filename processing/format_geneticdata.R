@@ -415,6 +415,8 @@ genetic_data = left_join(genetic_data, tng[,c("interview_language", "TNG", "Bran
                by = c("mother_language" = "interview_language"),
                suffix = c("", ".mother"))
 
+cat("After removing problematic or repeated samples there are", nrow(genetic_data), "mitogenomic samples.")
+
 #### Hybrid variables ####
 ### These variables contain a mixture of observed and inferred data. Details for their hybridisation are below
 
@@ -436,6 +438,10 @@ drop_provinces = c("West New Britain",
                    "East New Britain",
                    "New Ireland")
 
+cat("We drop", sum(genetic_data$province %in% drop_provinces) , "samples for being in provinces that are not of interest")
+cat("We drop", sum(str_detect(genetic_data$haplogroup, "B4a")) , "samples for being of Austronesian origin")
+cat("We drop", sum(is.na(genetic_data$interview_language)) , "samples for not having linguistic data")
+
 # These individuals are identified as out of scope.
 drop_ids = c("AY289086", "AY289092", "AY289087",
              "AY289084", "AY289088", "AY289091",
@@ -443,14 +449,14 @@ drop_ids = c("AY289086", "AY289092", "AY289087",
              "AY289082", "AY289079", "AY289078")
 
 TNG = genetic_data %>% 
-  filter(!str_detect(haplogroup, "B4a")) %>% # remove austronesians Austronesian
+  filter(!str_detect(haplogroup, "B4a")) %>%  # remove Austronesian
   filter(!province %in% drop_provinces) %>% 
-  filter(!ID %in% drop_ids) %>% 
-  filter(!is.na(interview_language)) 
+  filter(!ID %in% drop_ids) %>%  
+  filter(!is.na(interview_language)) %>% nrow()
 
 cat(sum(!is.na(TNG$interview_language)),
     "individuals provide language data, from a total of",
-    nrow(TNG), "individuals")
+    nrow(genetic_data), "individuals")
 
 # If there is no language recorded, use the inferred language data 
 cat("We could infer the language for", 

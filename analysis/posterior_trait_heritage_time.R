@@ -102,10 +102,10 @@ trees = lapply(trees, function(t) {
 m_file = opt$metadata
 metadata = read.csv(m_file)
 
-# TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
-# TNG_dups = TNG_dups[!TNG_dups$PhyID %in% metadata$PhyID,] # subset to the duplicates only
-# 
-# metadata = rbind(metadata, TNG_dups)
+TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
+TNG_dups = TNG_dups[!TNG_dups$PhyID %in% metadata$PhyID,] # subset to the duplicates only
+
+metadata = rbind(metadata, TNG_dups)
 
 cat("There are", nrow(metadata), "taxa in the metadata")
 
@@ -140,10 +140,17 @@ generation_time = 25
 
 cat("Calculating the probability of sharing a language given the phylogeny...\n")
 
-language_probability = mclapply(tree_pruned, function(t)
-  traitheritage::trait_heritage(t, trait = trait, generation_time = generation_time),
-  mc.preschedule = TRUE,
-  mc.cores = n_cores)
+if(trait_name == "TNG"){
+  language_probability = mclapply(tree_pruned, function(t)
+    traitheritage::trait_heritage_specific(t, trait = trait, generation_time = generation_time, condition = 1),
+    mc.preschedule = TRUE,
+    mc.cores = n_cores)
+} else {
+  language_probability = mclapply(tree_pruned, function(t)
+    traitheritage::trait_heritage(t, trait = trait, generation_time = generation_time),
+    mc.preschedule = TRUE,
+    mc.cores = n_cores)
+}
 
 languageprobability_bytrait = lapply(language_probability, function(x) x$by_trait) %>%
   data.table::rbindlist(., idcol = "posterior")
@@ -162,12 +169,24 @@ rm(language_probability)
 
 cat("Calculating the probability of sharing a language by chance (permutation tests)...\n")
 
-perm_prob = mclapply(tree_pruned, function(t)
-  permute_trait_heritage(t, trait = trait,
-                                        generation_time = generation_time,
-                                        n_permutations = p_tree),
-  mc.preschedule = TRUE,
-  mc.cores = n_cores)
+if(trait_name == "TNG"){
+  perm_prob = mclapply(tree_pruned, function(t)
+    permute_trait_heritage_specific(t, trait = trait,
+                                    generation_time = generation_time,
+                                    n_permutations = p_tree,
+                                    condition = 1),
+    mc.preschedule = TRUE,
+    mc.cores = n_cores)
+  
+} else {
+  perm_prob = mclapply(tree_pruned, function(t)
+    permute_trait_heritage(t, trait = trait,
+                                    generation_time = generation_time,
+                                    n_permutations = p_tree),
+    mc.preschedule = TRUE,
+    mc.cores = n_cores)
+  
+}
 
 permutationprobability_bytrait = lapply(perm_prob, "[[", "by_trait")
 permutationprobability_bytrait = data.table::rbindlist(permutationprobability_bytrait, idcol = "posterior")
@@ -186,128 +205,128 @@ rm(perm_prob)
 
 #### Distance Probability ####
 
-cat("Calculating Distance....")
-
-sort( sapply(ls(),function(x){object.size(get(x))})) 
-
-distance_matrix = readRDS(opt$distance)
-distance_matrix = distance_matrix[rownames(distance_matrix) %in% names(trait),
-                                  colnames(distance_matrix) %in% names(trait)]
-
-
-tree_dist = lapply(tree_pruned[1:n_tree], function(t) keep.tip(t, rownames(distance_matrix)))
-
-
-cat("Calculating the probability of of being within 48 hours of a genetic neighbour\n")
-distance_heritage_48h = mclapply(tree_dist[1:n_tree], function(t)
-  traitheritage::distance_trait_heritage(
-    tree = t,
-    generation_time = generation_time,
-    distance_matrix = distance_matrix,
-    cut_off = 48
-  ), mc.preschedule = TRUE,
-  mc.cores = n_cores)
-
-
-distance_heritage_48h_bytrait = lapply(distance_heritage_48h, "[[", "by_trait")
-distance_heritage_48h_bytrait = data.table::rbindlist(distance_heritage_48h_bytrait, idcol = "posterior")
-write.csv(distance_heritage_48h_bytrait, paste0(base_name, "_48hbytrait.csv"), row.names = FALSE)
-
-rm(distance_heritage_48h_bytrait)
-
-distance_heritage_48h_summary = lapply(distance_heritage_48h, "[[", "summary")
-distance_heritage_48h_summary = data.table::rbindlist(distance_heritage_48h_summary, idcol = "posterior")
-write.csv(distance_heritage_48h_summary, paste0(base_name, "_48hsummary.csv"), row.names = FALSE)
-rm(distance_heritage_48h_summary)
-
-sort( sapply(ls(),function(x){object.size(get(x))})) 
-
-rm(distance_heritage_48h)
-
-cat("Calculating the probability of of being within 24hours of a genetic neighbour\n")
-distance_heritage_24h = mclapply(tree_dist[1:n_tree], function(t)
-  traitheritage::distance_trait_heritage(
-    tree = t,
-    generation_time = generation_time,
-    distance_matrix = distance_matrix,
-    cut_off = 24
-  ), mc.preschedule = TRUE,
-  mc.cores = n_cores)
-
-distance_heritage_24h_bytrait = lapply(distance_heritage_24h, "[[", "by_trait")
-distance_heritage_24h_bytrait = data.table::rbindlist(distance_heritage_24h_bytrait, idcol = "posterior")
-write.csv(distance_heritage_24h_bytrait, paste0(base_name, "_24hbytrait.csv"), row.names = FALSE)
-
-rm(distance_heritage_24h_bytrait)
-
-distance_heritage_24h_summary = lapply(distance_heritage_24h, "[[", "summary")
-distance_heritage_24h_summary = data.table::rbindlist(distance_heritage_24h_summary, idcol = "posterior")
-write.csv(distance_heritage_24h_summary, paste0(base_name, "_24hsummary.csv"), row.names = FALSE)
-
-rm(distance_heritage_24h_summary)
-
-sort( sapply(ls(),function(x){object.size(get(x))})) 
-
-rm(distance_heritage_24h)
-
-cat("Calculating the probability of of being within 12hours walk of a genetic neighbour\n")
-distance_heritage_12h = mclapply(tree_dist[1:n_tree], function(t)
-  traitheritage::distance_trait_heritage(
-    tree = t,
-    generation_time = generation_time,
-    distance_matrix = distance_matrix,
-    cut_off = 12
-  ), mc.preschedule = TRUE,
-  mc.cores = n_cores)
-
-distance_heritage_12h_bytrait = lapply(distance_heritage_12h, "[[", "by_trait")
-distance_heritage_12h_bytrait = data.table::rbindlist(distance_heritage_12h_bytrait, idcol = "posterior")
-write.csv(distance_heritage_12h_bytrait, paste0(base_name, "_12hbytrait.csv"), row.names = FALSE)
-
-rm(distance_heritage_12h_bytrait)
-
-distance_heritage_12h_summary = lapply(distance_heritage_12h, "[[", "summary")
-distance_heritage_12h_summary = data.table::rbindlist(distance_heritage_12h_summary, idcol = "posterior")
-write.csv(distance_heritage_12h_summary, paste0(base_name, "_12hsummary.csv"), row.names = FALSE)
-
-rm(distance_heritage_12h_summary)
-
-sort( sapply(ls(),function(x){object.size(get(x))})) 
-
-rm(distance_heritage_12h)
-
-cat("Calculating the probability of of being within 6hours of a genetic neighbour\n")
-distance_heritage_6h = mclapply(tree_dist[1:n_tree], function(t)
-  traitheritage::distance_trait_heritage(
-    tree = t,
-    generation_time = generation_time,
-    distance_matrix = distance_matrix,
-    cut_off = 6
-  ), mc.preschedule = TRUE,
-  mc.cores = n_cores)
-
-distance_heritage_6h_bytrait = lapply(distance_heritage_6h, "[[", "by_trait")
-distance_heritage_6h_bytrait = data.table::rbindlist(distance_heritage_6h_bytrait, idcol = "posterior")
-write.csv(distance_heritage_6h_bytrait, paste0(base_name, "_6hbytrait.csv"), row.names = FALSE)
-
-rm(distance_heritage_6h_bytrait)
-
-distance_heritage_6h_summary = lapply(distance_heritage_6h, "[[", "summary")
-distance_heritage_6h_summary = data.table::rbindlist(distance_heritage_6h_summary, idcol = "posterior")
-write.csv(distance_heritage_6h_summary, paste0(base_name, "_6hsummary.csv"), row.names = FALSE)
-
-rm(distance_heritage_6h_summary)
-
-cat("Calculating the permuted probability of of being within 6hours of a genetic neighbour\n")
-distance_heritage_6h = mclapply(tree_dist[1:n_tree], function(t)
-  traitheritage::distance_trait_heritage(
-    tree = t,
-    generation_time = generation_time,
-    distance_matrix = distance_matrix,
-    cut_off = 6
-  ), mc.preschedule = TRUE,
-  mc.cores = n_cores)
-
-sort( sapply(ls(),function(x){object.size(get(x))})) 
-
-rm(distance_heritage_6h)
+# cat("Calculating Distance....")
+# 
+# sort( sapply(ls(),function(x){object.size(get(x))})) 
+# 
+# distance_matrix = readRDS(opt$distance)
+# distance_matrix = distance_matrix[rownames(distance_matrix) %in% names(trait),
+#                                   colnames(distance_matrix) %in% names(trait)]
+# 
+# 
+# tree_dist = lapply(tree_pruned[1:n_tree], function(t) keep.tip(t, rownames(distance_matrix)))
+# 
+# 
+# cat("Calculating the probability of of being within 48 hours of a genetic neighbour\n")
+# distance_heritage_48h = mclapply(tree_dist[1:n_tree], function(t)
+#   traitheritage::distance_trait_heritage(
+#     tree = t,
+#     generation_time = generation_time,
+#     distance_matrix = distance_matrix,
+#     cut_off = 48
+#   ), mc.preschedule = TRUE,
+#   mc.cores = n_cores)
+# 
+# 
+# distance_heritage_48h_bytrait = lapply(distance_heritage_48h, "[[", "by_trait")
+# distance_heritage_48h_bytrait = data.table::rbindlist(distance_heritage_48h_bytrait, idcol = "posterior")
+# write.csv(distance_heritage_48h_bytrait, paste0(base_name, "_48hbytrait.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_48h_bytrait)
+# 
+# distance_heritage_48h_summary = lapply(distance_heritage_48h, "[[", "summary")
+# distance_heritage_48h_summary = data.table::rbindlist(distance_heritage_48h_summary, idcol = "posterior")
+# write.csv(distance_heritage_48h_summary, paste0(base_name, "_48hsummary.csv"), row.names = FALSE)
+# rm(distance_heritage_48h_summary)
+# 
+# sort( sapply(ls(),function(x){object.size(get(x))})) 
+# 
+# rm(distance_heritage_48h)
+# 
+# cat("Calculating the probability of of being within 24hours of a genetic neighbour\n")
+# distance_heritage_24h = mclapply(tree_dist[1:n_tree], function(t)
+#   traitheritage::distance_trait_heritage(
+#     tree = t,
+#     generation_time = generation_time,
+#     distance_matrix = distance_matrix,
+#     cut_off = 24
+#   ), mc.preschedule = TRUE,
+#   mc.cores = n_cores)
+# 
+# distance_heritage_24h_bytrait = lapply(distance_heritage_24h, "[[", "by_trait")
+# distance_heritage_24h_bytrait = data.table::rbindlist(distance_heritage_24h_bytrait, idcol = "posterior")
+# write.csv(distance_heritage_24h_bytrait, paste0(base_name, "_24hbytrait.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_24h_bytrait)
+# 
+# distance_heritage_24h_summary = lapply(distance_heritage_24h, "[[", "summary")
+# distance_heritage_24h_summary = data.table::rbindlist(distance_heritage_24h_summary, idcol = "posterior")
+# write.csv(distance_heritage_24h_summary, paste0(base_name, "_24hsummary.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_24h_summary)
+# 
+# sort( sapply(ls(),function(x){object.size(get(x))})) 
+# 
+# rm(distance_heritage_24h)
+# 
+# cat("Calculating the probability of of being within 12hours walk of a genetic neighbour\n")
+# distance_heritage_12h = mclapply(tree_dist[1:n_tree], function(t)
+#   traitheritage::distance_trait_heritage(
+#     tree = t,
+#     generation_time = generation_time,
+#     distance_matrix = distance_matrix,
+#     cut_off = 12
+#   ), mc.preschedule = TRUE,
+#   mc.cores = n_cores)
+# 
+# distance_heritage_12h_bytrait = lapply(distance_heritage_12h, "[[", "by_trait")
+# distance_heritage_12h_bytrait = data.table::rbindlist(distance_heritage_12h_bytrait, idcol = "posterior")
+# write.csv(distance_heritage_12h_bytrait, paste0(base_name, "_12hbytrait.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_12h_bytrait)
+# 
+# distance_heritage_12h_summary = lapply(distance_heritage_12h, "[[", "summary")
+# distance_heritage_12h_summary = data.table::rbindlist(distance_heritage_12h_summary, idcol = "posterior")
+# write.csv(distance_heritage_12h_summary, paste0(base_name, "_12hsummary.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_12h_summary)
+# 
+# sort( sapply(ls(),function(x){object.size(get(x))})) 
+# 
+# rm(distance_heritage_12h)
+# 
+# cat("Calculating the probability of of being within 6hours of a genetic neighbour\n")
+# distance_heritage_6h = mclapply(tree_dist[1:n_tree], function(t)
+#   traitheritage::distance_trait_heritage(
+#     tree = t,
+#     generation_time = generation_time,
+#     distance_matrix = distance_matrix,
+#     cut_off = 6
+#   ), mc.preschedule = TRUE,
+#   mc.cores = n_cores)
+# 
+# distance_heritage_6h_bytrait = lapply(distance_heritage_6h, "[[", "by_trait")
+# distance_heritage_6h_bytrait = data.table::rbindlist(distance_heritage_6h_bytrait, idcol = "posterior")
+# write.csv(distance_heritage_6h_bytrait, paste0(base_name, "_6hbytrait.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_6h_bytrait)
+# 
+# distance_heritage_6h_summary = lapply(distance_heritage_6h, "[[", "summary")
+# distance_heritage_6h_summary = data.table::rbindlist(distance_heritage_6h_summary, idcol = "posterior")
+# write.csv(distance_heritage_6h_summary, paste0(base_name, "_6hsummary.csv"), row.names = FALSE)
+# 
+# rm(distance_heritage_6h_summary)
+# 
+# cat("Calculating the permuted probability of of being within 6hours of a genetic neighbour\n")
+# distance_heritage_6h = mclapply(tree_dist[1:n_tree], function(t)
+#   traitheritage::distance_trait_heritage(
+#     tree = t,
+#     generation_time = generation_time,
+#     distance_matrix = distance_matrix,
+#     cut_off = 6
+#   ), mc.preschedule = TRUE,
+#   mc.cores = n_cores)
+# 
+# sort( sapply(ls(),function(x){object.size(get(x))})) 
+# 
+# rm(distance_heritage_6h)
