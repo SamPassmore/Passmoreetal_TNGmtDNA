@@ -2,10 +2,24 @@
 
 suppressPackageStartupMessages({
   library(ape)
+  library(dplyr)
+  library(ggtree)
+  library(treeio)
+  library(ggplot2)
+  library(patchwork)
 })
 
 source("analysis/helper.R")
 
+## Get Metadata
+TNG_metadata = read.csv("processed_data/TNGData.csv")
+## Add in duplicate metadata
+TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
+TNG_dups = TNG_dups[!TNG_dups$PhyID %in% TNG_metadata$PhyID,] # subset to the duplicates only
+TNG_metadata = rbind(TNG_metadata, TNG_dups)
+TNG_metadata = TNG_metadata[TNG_metadata$interview_language != "Tok Pisin [tpi]",] 
+
+# Get Trees
 mcct_tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.mcct.duptips.trees") 
 mcct_depth = mean(adephylo::distRoot(mcct_tree))
 
@@ -33,8 +47,8 @@ TNG_df = TNG_metadata %>% dplyr::filter(PhyID %in% mcct_tree$tip.label)
 tng_tree = keep.tip(mcct_tree, TNG_df$PhyID[!is.na(TNG_df$TNG)])
 tree_data = full_join(tng_tree, TNG_df, by = c(label = "PhyID"))
 
-tree_line_plot(tree_data, tng_summary, tng_summary_p, variable = "TNG") & theme(legend.position = "none")
-
+tree_line_plot(tree_data, tng_summary, tng_summary_p, variable = "TNG") & theme(legend.position = "none") 
+ggsave(filename = "figures/tree_figure.png", width = 210, height = 297/2, units = "mm")
 
 #when does the data probability seperate from the permutation probability
 # true_perm = left_join(tng_summary, tng_summary_p, by = c("generation"),

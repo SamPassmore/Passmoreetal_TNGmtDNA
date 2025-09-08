@@ -11,17 +11,24 @@ suppressPackageStartupMessages({
 options(knitr.kable.NA = '-')
 
 # Load Metadata
-TNG_metadata = read.csv("processed_data/TNGData.csv")
+# TNG_metadata = read.csv("processed_data/TNGData.csv")
+# 
+# ## Add in duplicate metadata
+# TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
+# TNG_dups = TNG_dups[!TNG_dups$PhyID %in% TNG_metadata$PhyID,] # subset to the duplicates only
+# 
+# TNG_metadata = rbind(TNG_metadata, TNG_dups)
 
-## Add in duplicate metadata
+metadata = read.csv("processed_data/TNGData.csv")
+
 TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
-TNG_dups = TNG_dups[!TNG_dups$PhyID %in% TNG_metadata$PhyID,] # subset to the duplicates only
+TNG_dups = TNG_dups[!TNG_dups$PhyID %in% metadata$PhyID,] # subset to the duplicates only
 
-TNG_metadata = rbind(TNG_metadata, TNG_dups)
+metadata = rbind(metadata, TNG_dups)
 
 TNG_metadata = TNG_metadata[TNG_metadata$interview_language != "Tok Pisin [tpi]",] 
 # Baining speakers are unlikely to have come from New Guinea Mainland. This is a metadata mistake. 
-TNG_metadata = TNG_metadata[TNG_metadata$Branch_Family != "Baining",]
+# TNG_metadata = TNG_metadata[TNG_metadata$Branch_Family != "Baining",]
 
 # remove data not used in the phylogeny
 mcct_tree = read.nexus("/Volumes/PassmoreSSD/PapuanPast/20250106_LanguageSample_CBES_Relaxed_Constrained/20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.mcct.duptips.trees") 
@@ -84,15 +91,17 @@ ht = haplo_table %>%
   arrange(factor(Branch_Family, levels = c(tng, non_tng))) %>% 
   adorn_totals("row") %>%  # Add total row
   adorn_totals("col") %>%  # Add total column
-  rename(" "= Branch_Family) %>% 
+  rename(" "= Branch_Family)
+
+kable_table = ht %>% 
   kable(., escape = FALSE, padding=0L, linesep = "") %>%
   kableExtra::group_rows("Trans-New Guinea", 1, 10) %>%
   kableExtra::group_rows("Not Trans-New Guinea", 11, nrow(haplo_table)) %>% 
   kable_styling(font_size = 9, full_width = FALSE) %>% 
   paste0(css_row_height, sep = "\n") 
 
-
-rio::export(ht, file = "figures/haplogroup_table.html", format = "html")
+write.csv(ht, "figures/haplogroup_table.csv")
+# rio::export(ht, file = "figures/haplogroup_table.html", format = "html")
 
 ## Chi Sq Tests
 tng = TNG_metadata$TNG

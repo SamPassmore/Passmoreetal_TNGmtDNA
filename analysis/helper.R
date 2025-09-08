@@ -6,19 +6,21 @@ summarizer = function(posterior, permuted_results = FALSE){
   if(permuted_results){
     out = posterior %>%
       filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
-      group_by(generation, posterior) %>%
-      summarise(wntree_cladeprob = mean(clade_probability, na.rm = TRUE)) %>% 
-      ungroup() %>% 
+      # group_by(generation, posterior) %>%
+      # summarise(wntree_cladeprob = mean(clade_probability, na.rm = TRUE)) %>% 
+      # ungroup() %>% 
       group_by(generation) %>% 
-      summarise(mean_clade_probability = mean(wntree_cladeprob, na.rm = TRUE),
-                ci_hdi = bayestestR::ci(wntree_cladeprob)) %>% 
+      # summarise(mean_clade_probability = mean(wntree_cladeprob, na.rm = TRUE),
+      #           ci_hdi = bayestestR::ci(wntree_cladeprob)) %>% 
+      summarise(mean_clade_probability = mean(clade_probability, na.rm = TRUE),
+                ci_hdi = bayestestR::ci(clade_probability, method = "HDI", ci = 0.99)) %>% 
       tidyr::unpack(ci_hdi)  
   } else {
     out = posterior %>%
       filter(!is.na(clade_probability)) %>% # remove NA clades. Usually occur because of singleton clades
       group_by(generation) %>%
       summarise(mean_clade_probability = mean(clade_probability, na.rm = TRUE),
-                ci_hdi = bayestestR::ci(clade_probability), # 95% credible interval
+                ci_hdi = bayestestR::ci(clade_probability, method = "HDI", ci = 0.99), # 95% credible interval
                 n_matches = sum(numerator_sum)) %>% 
       tidyr::unpack(ci_hdi)  
   }
@@ -29,18 +31,17 @@ summarizer = function(posterior, permuted_results = FALSE){
 tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variable){
   variable <- ensym(variable)
   p_tree = ggtree(tree_data, size = 0.05) + 
-    # geom_tippoint(aes(col = factor(!!variable)), shape = "\u2588", size = 12) +
     geom_tippoint(aes(col = factor(!!variable)), shape = "I", size = 4) +
-    scale_x_continuous(breaks = c(10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000),
-                       labels = c("10k", "20k", "30k", "40k", "50k", "60k", "70k", "80k")) +
     scale_fill_discrete(name = NULL) + 
     scale_color_manual(values = c("#FFCD00", "#C8102E")) +
+    geom_vline(xintercept = -10000, linetype = "dashed") +
+    annotate("text", x = -8000, y = 50, label = "10kya: Evidence of Agriculture", size = 3) + 
     layout_dendrogram() + 
     theme(legend.position = "bottom", 
           axis.ticks.y = element_line(),
           axis.line.y = element_line(),
           axis.text.y = element_text(),
-          panel.grid.major = element_line())
+          panel.grid.major.x = element_blank())
   
   # match scales in each plot
   x_range = layer_scales(p_tree)$x$range$range
@@ -55,14 +56,16 @@ tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variab
     geom_line(data = permuted_summary,
               aes(x = generation, y = mean_clade_probability),
               col = "#00274D") +
-    # ylim(c(0, 0.5)) +
+    ylim(c(0.3, 1.0)) +
     xlim(x_range) + ## max tree height (or max p_tree?)
     coord_flip() +
     xlab("") + 
     ylab("") + 
     scale_fill_discrete(name = NULL) + 
     theme_classic(base_size = 10) + 
+    geom_vline(xintercept = 10000, linetype = "dashed") +
     theme(panel.grid.major.y = element_line(), 
+          panel.grid.major.x = element_blank(),
           panel.grid.minor = element_blank(),
           panel.background = element_rect(colour = "black", linewidth=0.5),
           axis.text.y = element_blank(),
@@ -70,7 +73,7 @@ tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variab
   
   plot = p_tree + p_prob + 
     plot_layout(guides = "collect", widths = c(1, 0.25)) &
-    theme(legend.position = "bottom", legend.title = element_blank())
+    theme(legend.position = "bottom", legend.title = element_blank())  
   
   return(plot)
 }

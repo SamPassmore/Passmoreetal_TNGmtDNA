@@ -46,6 +46,8 @@ individual: TNG TNG_Branch ## Run all analysis on a participants language respon
 Father: Father_TNG Father_Branch ## Run all analysis on a participants mother's language
 Mother: Mother_TNG Mother_Branch ## Run all analysis on a participants father's language
 
+branch: Angan ChimbuWahgi KainantuGoroka SukiGogodala Enga Kiwaian
+
 TNG:
 	echo $(TREE)
 	Rscript analysis/posterior_trait_heritage_time.R \
@@ -54,25 +56,103 @@ TNG:
   -n $(N_TREE) \
   -m "$(METADATA)" \
   -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
+  -c "TNG" 
+  
+TNG_Coevo48:
+	echo $(TREE)
+	Rscript analysis/posterior_coevolution.R \
+	-t "$(TREE)" \
+	-v TNG \
+	-n 900 \
+	-m "$(METADATA)" \
+	-c "1" \
+	-p 3 \
+	-w 48 \ 
+	-d processed_data/hikingtime_h.RDS 
 
-TNG_Branch:
+TNG_Coevo24:
+	echo $(TREE)
+	Rscript analysis/posterior_coevolution.R \
+		-t "$(TREE)" \
+		-v TNG \
+		-n 900 \
+		-m "$(METADATA)" \
+		-c "1" \
+		-p 3 \
+		-w 24 \
+		-d processed_data/hikingtime_h.RDS 
+		
+TNG_Coevo12:
+	echo $(TREE)
+	Rscript analysis/posterior_coevolution.R \
+		-t "$(TREE)" \
+		-v TNG \
+		-n 900 \
+		-m "$(METADATA)" \
+		-c "1" \
+		-p 3 \
+		-w 12 \
+		-d processed_data/hikingtime_h.RDS 
+
+Angan:
+	echo $(TREE)
 	Rscript analysis/posterior_trait_heritage_time.R \
-  -t $(TREE) \
+  -t "$(TREE)" \
   -v TNG_Branch \
   -n $(N_TREE) \
   -m "$(METADATA)" \
   -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
-
-Father_Branch:
+  -c "Angan" 
+  
+ChimbuWahgi:
+	echo $(TREE)
 	Rscript analysis/posterior_trait_heritage_time.R \
-  -t $(TREE) \
-  -v Branch_Family.father \
+  -t "$(TREE)" \
+  -v TNG_Branch \
   -n $(N_TREE) \
   -m "$(METADATA)" \
   -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
+  -c "Chimbu-Wahgi"
+  
+KainantuGoroka:
+	echo $(TREE)
+	Rscript analysis/posterior_trait_heritage_time.R \
+  -t "$(TREE)" \
+  -v TNG_Branch \
+  -n $(N_TREE) \
+  -m "$(METADATA)" \
+  -p $(PERMUT) \
+  -c "Kainantu-Goroka"
+  
+SukiGogodala:
+	echo $(TREE)
+	Rscript analysis/posterior_trait_heritage_time.R \
+  -t "$(TREE)" \
+  -v TNG_Branch \
+  -n $(N_TREE) \
+  -m "$(METADATA)" \
+  -p $(PERMUT) \
+  -c "Suki-Gogodala"
+  
+Enga:
+	echo $(TREE)
+	Rscript analysis/posterior_trait_heritage_time.R \
+  -t "$(TREE)" \
+  -v TNG_Branch \
+  -n $(N_TREE) \
+  -m "$(METADATA)" \
+  -p $(PERMUT) \
+  -c "Enga-Kewa-Huli"
+  
+Kiwaian:
+	echo $(TREE)
+	Rscript analysis/posterior_trait_heritage_time.R \
+  -t "$(TREE)" \
+  -v TNG_Branch \
+  -n $(N_TREE) \
+  -m "$(METADATA)" \
+  -p $(PERMUT) \
+  -c "Kiwaian"
 
 Father_TNG:
 	Rscript analysis/posterior_trait_heritage_time.R \
@@ -81,7 +161,7 @@ Father_TNG:
   -n $(N_TREE) \
   -m "$(METADATA)" \
   -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
+  -d processed_data/hikingtime_h.RDS
 
 Mother_TNG:
 	Rscript analysis/posterior_trait_heritage_time.R \
@@ -90,28 +170,13 @@ Mother_TNG:
   -n $(N_TREE) \
   -m "$(METADATA)" \
   -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
+  -d processed_data/hikingtime_h.RDS
 
-Mother_Branch:
-	Rscript analysis/posterior_trait_heritage_time.R \
-  -t $(TREE) \
-  -v Branch_Family.mother \
-  -n $(N_TREE) \
-  -m "$(METADATA)" \
-  -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
-
-All_Branches:
-	Rscript analysis/posterior_trait_heritage_time.R \
-  -t $(TREE) \
-  -v Branch_Family \
-  -n $(N_TREE) \
-  -m "$(METADATA)" \
-  -p $(PERMUT) \
-  -d data/hikingtime_h.RDS
-  
 ### Make Graphs
 figures: ## Make figures and tables for the paper
 	Rscript analysis/map.R # map figure
 	Rscript analysis/haplogroup_table.R # make table of haplogroup frequencies
+	Rscript analysis/tree_plots.R # make the tree and probability plot
+	Rscript analysis/languagesubgroup_plot.R # make the subgroup family plot
+	Rscript analysis/geographic_figure.R ## Make the coevolution of geography and phylogeny plot
 	
