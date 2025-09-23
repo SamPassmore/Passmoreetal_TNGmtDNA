@@ -105,8 +105,8 @@ suki_plt = plot_subgroup(suki_s, suki_ps, "Suki-Gogodala (6)")
 enga_plt = plot_subgroup(enga_s, enga_ps, "Enga-Kewa-Huli (21)")
 kiwaian_plt = plot_subgroup(kiwaian_s, kiwaian_ps, "Kiwaian (5)")
 
-top = (kainantu_plt + chimbu_plt + angan_plt)
-bottom = (enga_plt + suki_plt + kiwaian_plt)
+top = (kainantu_plt + chimbu_plt)
+bottom = (angan_plt + enga_plt)
 
 
 (top + plot_layout(axes = "collect")) /

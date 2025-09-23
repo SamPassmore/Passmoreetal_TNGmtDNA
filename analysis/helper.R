@@ -35,13 +35,16 @@ tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variab
     scale_fill_discrete(name = NULL) + 
     scale_color_manual(values = c("#FFCD00", "#C8102E")) +
     geom_vline(xintercept = -10000, linetype = "dashed") +
-    annotate("text", x = -8000, y = 50, label = "10kya: Evidence of Agriculture", size = 3) + 
+    annotate("text", x = -8000, y = 65, label = "10kya: Evidence of Plant Management", size = 3) + 
     layout_dendrogram() + 
-    theme(legend.position = "bottom", 
-          axis.ticks.y = element_line(),
-          axis.line.y = element_line(),
-          axis.text.y = element_text(),
-          panel.grid.major.x = element_blank())
+    scale_x_reverse(breaks = c(0, -20000, -40000, -60000), labels = c("0", "20kya", "40kya", "60kya")) + 
+    theme(legend.position = "bottom",
+      axis.ticks.y = element_line(),
+      axis.line.y = element_line(),
+      axis.text.y = element_text(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.major.y = element_line(),
+      panel.grid.minor.y = element_line())
   
   # match scales in each plot
   x_range = layer_scales(p_tree)$x$range$range
@@ -66,7 +69,7 @@ tree_line_plot = function(tree_data, posterior_summary, permuted_summary, variab
     geom_vline(xintercept = 10000, linetype = "dashed") +
     theme(panel.grid.major.y = element_line(), 
           panel.grid.major.x = element_blank(),
-          panel.grid.minor = element_blank(),
+          panel.grid.minor.y = element_line(),
           panel.background = element_rect(colour = "black", linewidth=0.5),
           axis.text.y = element_blank(),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
