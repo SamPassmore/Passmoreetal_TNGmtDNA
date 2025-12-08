@@ -46,7 +46,7 @@ p = base_map +
   height = 0.2
   ) + 
   # scale_size_continuous(breaks = c(10, 15, 20, 25)) + 
-  scale_fill_manual(labels = c("Not TNG", "TNG"), values = c("#FFCD00", "#C8102E")) + 
+  scale_fill_manual(labels = c("Non-TNG", "TNG"), values = c("#FFCD00", "#C8102E")) + 
   # scale_shape_manual(labels = c("Not TNG", "TNG"), values = c(17, 18)) + 
   guides(size = guide_legend(title ="N Samples"),
          fill = guide_legend(title = element_blank(), override.aes = list(size=5)),

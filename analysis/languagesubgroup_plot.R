@@ -41,7 +41,7 @@ plot_subgroup = function(df, df_p, title){
       aes(x = generation, y = mean_clade_probability),
       col = "#00274D"
     ) +
-    ylab("Probability of a\n Shared Language") +
+    ylab("Probability of Shared\n Language Group") +
     xlab("Time") +
     scale_x_continuous(
       breaks = c(5000, 10000, 15000, 20000, 25000, 30000),

@@ -20,7 +20,9 @@ md = metadata[metadata$PhyID %in% mcct_tree$tip.label,]
 supp = data.frame(ID = md$ID,
            Reference = md$citation,
            Language = md$interview_language,
-           `Family/Branch` = md$Branch_Family
+           `Family/Branch` = md$Branch_Family,
+           Haplogroup = md$haplogroup,
+           mutations_fromRCRS = md$mutations_fromRCRS
 )
 
 supp$Reference[supp$Reference == "New"] = "André et al. (2021)"

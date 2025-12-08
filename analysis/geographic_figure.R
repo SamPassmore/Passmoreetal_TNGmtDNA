@@ -34,6 +34,15 @@ summarise_posterior = function(df){
 ld48_df = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_coevoTNG_48h.csv")
 ld48_df_p = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_coevoTNG_48h_permu.csv")
 
+ld48_df_s1 = ld48_df %>% 
+  select(generation, p_lang_dist, p_lang_nodist, p_nolang_dist, p_nolang_nodist) %>% 
+  filter(generation != 0) %>% 
+  group_by(generation) %>% 
+  pivot_longer(cols = c("p_lang_dist", "p_lang_nodist", "p_nolang_dist", "p_nolang_nodist"),
+               names_to = "variable", values_to = "value") %>% 
+  group_by(variable, generation) %>%
+  summarise(value = mean(value))
+
 # 24 hours
 ld24_df = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_coevoTNG_24h.csv")
 ld24_df_p = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_coevoTNG_24h_permu.csv")
@@ -43,38 +52,18 @@ ld12_df = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constr
 ld12_df_p = read.csv("results/TNG_20250106_LanguageSample_CBES_RelaxedClock_Constrained-all_data.noburnin.duptips_coevoTNG_12h_permu.csv")
 
 
-p1 = ggplot(ld48_df_s, aes(x = generation, y = value, fill = variable), bg = "black") + 
-  geom_area(position = "stack") +
-  scale_fill_manual(name = "Types of Pairs",
-                    labels = c("L & D",
-                               "L & ¬D",
-                               "¬L & D",
-                               "¬L & ¬D"),
-                    values = c(png_colors$flag)) + 
-  xlim(0, 25000) +
-  scale_x_continuous(
-    breaks = c(5000, 10000, 15000, 20000),
-    labels = c("5k", "10k", "15k", "20k"),
-    limits = c(0, 25000)
-  ) + 
-  ylab("Cumulative probability") + 
-  ggtitle("48 Hours Walking Distance") + 
-  theme_classic() + 
-  theme(legend.position = "bottom",
-        axis.title = element_blank())
-
 plot_time = function(df, perm, title) {
   ggplot() +
     geom_ribbon(
       data = df,
       aes(ymin = CI_low, ymax = CI_high, x = generation),
-      fill = "#F8D1D7",
+      fill = "#fae484",
       alpha = 0.5
     ) + 
     geom_line(
       data = df,
       aes(x = generation, y = p_lang_nodist_probability),
-      col = "#C8102E"
+      col = "#FFCC00"
     ) +
     geom_ribbon(
       data = perm,
@@ -114,6 +103,25 @@ ld24_df_ps = summarise_posterior(ld24_df_p)
 ld12_df_s = summarise_posterior(ld12_df)
 ld12_df_ps = summarise_posterior(ld12_df_p)
 
+p1 = ggplot(ld48_df_s1, aes(x = generation, y = value, fill = variable), bg = "black") + 
+  geom_area(position = "stack") +
+  scale_fill_manual(name = "Types of Pairs",
+                    labels = c("L & D",
+                               "L & ¬D",
+                               "¬L & D",
+                               "¬L & ¬D"),
+                    values = c(png_colors$flag)) + 
+  xlim(0, 25000) +
+  scale_x_continuous(
+    breaks = c(5000, 10000, 15000, 20000),
+    labels = c("5k", "10k", "15k", "20k"),
+    limits = c(0, 25000)
+  ) + 
+  ylab("Cumulative probability") + 
+  ggtitle("48 Hours Walking Distance") + 
+  theme_classic() + 
+  theme(legend.position = "bottom",
+        axis.title = element_blank())
 
 p12 = plot_time(ld12_df_s, ld12_df_ps, "12 Hours")
 p24 = plot_time(ld24_df_s, ld24_df_ps, "24 Hours")

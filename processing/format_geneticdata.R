@@ -451,7 +451,7 @@ cat("Remove", sum(TNG$province %in% drop_provinces, na.rm = TRUE) +
     , "Eastern Samples")
 TNG = TNG[!TNG$province %in% drop_provinces,]
 TNG = TNG[TNG$Branch_Family != "Baining",]
-cat("Remove", sum(is.na(TNG$interview_language), na.rm = TRUE), "Eastern Samples")
+cat("Remove", sum(is.na(TNG$interview_language), na.rm = TRUE), "Samples with no language data")
 TNG = TNG[!is.na(TNG$interview_language),] 
 
 # TNG2 = genetic_data %>% 
