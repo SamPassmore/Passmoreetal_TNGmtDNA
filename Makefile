@@ -24,6 +24,9 @@ help: ## Displays targets and descriptions
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 data_processing: ## Process the genetic data for phylogenetic analysis
+	mkdir -p processed_data/
+	mkdir -p results/
+	mkdir -p figures/
 	Rscript processing/format_geneticdata.R
 	Rscript processing/create_reference_genomes.R
 	Rscript processing/distance_measures.R
