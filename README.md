@@ -16,4 +16,5 @@ Available make targets:
 ```
 
 Drummond, A. J., & Rambaut, A. (2007). BEAST: Bayesian evolutionary analysis by sampling trees. BMC Evolutionary Biology, 7(1), 214. https://doi.org/10.1186/1471-2148-7-214
+
 Heled, J., & Bouckaert, R. R. (2013). Looking for trees in the forest: Summary tree from posterior samples. BMC Evolutionary Biology, 13(1), 221. https://doi.org/10.1186/1471-2148-13-221
