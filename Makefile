@@ -26,6 +26,7 @@ help: ## Displays targets and descriptions
 data_processing: ## Process the genetic data for phylogenetic analysis
 	Rscript processing/format_geneticdata.R
 	Rscript processing/create_reference_genomes.R
+	Rscript processing/distance_measures.R
 
 make_phylogeny: ## Build the phylogeny using BEAST2
 	# This line should run the code to build the phylogeny, although note, we did actually run the analysis on the NCI
