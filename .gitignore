@@ -4,6 +4,7 @@ processed_data/
 NCI/
 results/
 figures/
+tmp/
 
 # Ignore created file types
 /*.pdf
