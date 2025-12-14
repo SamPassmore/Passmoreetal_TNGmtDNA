@@ -43,8 +43,6 @@ prepare_tree: ## Perform cleaning steps from the BEAST2 output. Some steps are m
 # I have removed the analysis on individual languages because of memory problems
 # and it is not currently discussed in the manuscript as it stands. 
 individual: TNG TNG_Branch ## Run all analysis on a participants language response
-Father: Father_TNG Father_Branch ## Run all analysis on a participants mother's language
-Mother: Mother_TNG Mother_Branch ## Run all analysis on a participants father's language
 
 branch: Angan ChimbuWahgi KainantuGoroka SukiGogodala Enga Kiwaian
 
@@ -57,42 +55,6 @@ TNG:
   -m "$(METADATA)" \
   -p $(PERMUT) \
   -c "TNG" 
-  
-TNG_Coevo48:
-	echo $(TREE)
-	Rscript analysis/posterior_coevolution.R \
-	-t "$(TREE)" \
-	-v TNG \
-	-n 900 \
-	-m "$(METADATA)" \
-	-c "1" \
-	-p 3 \
-	-w 48 \ 
-	-d processed_data/hikingtime_h.RDS 
-
-TNG_Coevo24:
-	echo $(TREE)
-	Rscript analysis/posterior_coevolution.R \
-		-t "$(TREE)" \
-		-v TNG \
-		-n 900 \
-		-m "$(METADATA)" \
-		-c "1" \
-		-p 3 \
-		-w 24 \
-		-d processed_data/hikingtime_h.RDS 
-		
-TNG_Coevo12:
-	echo $(TREE)
-	Rscript analysis/posterior_coevolution.R \
-		-t "$(TREE)" \
-		-v TNG \
-		-n 900 \
-		-m "$(METADATA)" \
-		-c "1" \
-		-p 3 \
-		-w 12 \
-		-d processed_data/hikingtime_h.RDS 
 
 Angan:
 	echo $(TREE)
@@ -153,24 +115,6 @@ Kiwaian:
   -m "$(METADATA)" \
   -p $(PERMUT) \
   -c "Kiwaian"
-
-Father_TNG:
-	Rscript analysis/posterior_trait_heritage_time.R \
-  -t $(TREE) \
-  -v TNG.father \
-  -n $(N_TREE) \
-  -m "$(METADATA)" \
-  -p $(PERMUT) \
-  -d processed_data/hikingtime_h.RDS
-
-Mother_TNG:
-	Rscript analysis/posterior_trait_heritage_time.R \
-  -t $(TREE) \
-  -v TNG.mother \
-  -n $(N_TREE) \
-  -m "$(METADATA)" \
-  -p $(PERMUT) \
-  -d processed_data/hikingtime_h.RDS
 
 ### Make Graphs
 figures: ## Make figures and tables for the paper
