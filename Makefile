@@ -46,9 +46,9 @@ prepare_tree: ## Perform cleaning steps from the BEAST2 output. Some steps are m
 ### Run Phylogenetic Inference
 # I have removed the analysis on individual languages because of memory problems
 # and it is not currently discussed in the manuscript as it stands. 
-individual: TNG TNG_Branch ## Run all analysis on a participants language response
+individual: TNG ## Run all analysis on a participants TNG language affiliation
 
-branch: Angan ChimbuWahgi KainantuGoroka SukiGogodala Enga Kiwaian
+branch: Angan ChimbuWahgi KainantuGoroka SukiGogodala Enga Kiwaian ## Run the analysis for each sub-group of interest
 
 TNG:
 	echo $(TREE)
@@ -122,9 +122,12 @@ Kiwaian:
 
 ### Make Graphs
 figures: ## Make figures and tables for the paper
+	Rscript analysis/base_map.R # base map figure
 	Rscript analysis/map.R # map figure
 	Rscript analysis/haplogroup_table.R # make table of haplogroup frequencies
 	Rscript analysis/tree_plots.R # make the tree and probability plot
 	Rscript analysis/languagesubgroup_plot.R # make the subgroup family plot
 	Rscript analysis/geographic_figure.R ## Make the coevolution of geography and phylogeny plot
+	Rscript analysis/supptable.R ## Makes the supp table
+	
 	
