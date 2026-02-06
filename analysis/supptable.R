@@ -6,7 +6,7 @@ TNG_metadata = read.csv("processed_data/TNGData.csv")
 TNG_dups = read.csv("processed_data/genetic_duplicate_data.csv")
 TNG_dups = TNG_dups[!TNG_dups$PhyID %in% TNG_metadata$PhyID,] # subset to the duplicates only
 metadata = rbind(TNG_metadata, TNG_dups)
-# metadata = metadata[metadata$interview_language != "Tok Pisin [tpi]",]
+metadata = metadata[metadata$interview_language != "Tok Pisin [tpi]",]
 # Baining speakers are unlikely to have come from New Guinea Mainland. This is a metadata mistake. 
 metadata = metadata[metadata$Branch_Family != "Baining",]
 

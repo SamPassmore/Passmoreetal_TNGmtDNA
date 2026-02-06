@@ -179,7 +179,7 @@ cat("Calculating the probability of sharing a language by chance (permutation te
 
 if(!is.null(condition)){
   perm_prob = mclapply(tree_pruned, function(t)
-    permute_trait_heritage_specific(t, trait = trait,
+    traitheritage::permute_trait_heritage_specific(t, trait = trait,
                                     generation_time = generation_time,
                                     n_permutations = p_tree,
                                     condition = condition),
@@ -188,7 +188,7 @@ if(!is.null(condition)){
   
 } else {
   perm_prob = mclapply(tree_pruned, function(t)
-    permute_trait_heritage(t, trait = trait,
+    traitheritage::permute_trait_heritage(t, trait = trait,
                                     generation_time = generation_time,
                                     n_permutations = p_tree),
     mc.preschedule = TRUE,
