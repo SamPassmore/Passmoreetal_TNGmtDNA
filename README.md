@@ -4,6 +4,9 @@ _Sam Passmore, Ray Tobler, Nicolas Brucato, Jimmy Nébni, Monika Karmin, Matthew
 This repository holds the code to replicate much of the analysis in Passmore et al. (In Prep.). The analysis procedure is defined within the Makefile and can be run using the make commands provided (see below).
 The only exception is the post-processing of the mtDNA phylogeny, which was produced using LogCombiner (Drummond and Rambaut, 2007) and  and TreeAnnotator (Heled and Bouckaert, 2013). 
 
+## Data Availability
+The raw genetic data for this analysis is not available here, due to ethical concerns. If you require the raw data, please contact the corresponding author, or use the details within supplementary table 1 (stored with the manuscript). 
+
 ```
 Available make targets:
   help                 Displays targets and descriptions
