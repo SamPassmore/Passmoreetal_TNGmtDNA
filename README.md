@@ -55,7 +55,7 @@ gdistance
 reshape2
 ```
 And the custom package:
-`traitheritage (github.comSamPassmore/traitheritage)`
+`traitheritage (github.com/SamPassmore/traitheritage)`
 
 Drummond, A. J., & Rambaut, A. (2007). BEAST: Bayesian evolutionary analysis by sampling trees. BMC Evolutionary Biology, 7(1), 214. https://doi.org/10.1186/1471-2148-7-214
 
